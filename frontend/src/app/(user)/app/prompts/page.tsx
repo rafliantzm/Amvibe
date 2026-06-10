@@ -397,8 +397,8 @@ function PromptsContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <div className="flex items-center justify-between mb-8">
-                <div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 w-full">
+                <div className="flex-1 w-full">
                   <button
                     onClick={() => {
                       setSelectedProject(null)
@@ -409,19 +409,19 @@ function PromptsContent() {
                   >
                     ← Back to Projects
                   </button>
-                  <h2 className="text-2xl font-bold text-white mb-1">{selectedProject.name}</h2>
+                  <h2 className="text-2xl font-bold text-white mb-1 truncate">{selectedProject.name}</h2>
                   <p className="text-zinc-500 text-sm">
                     {plannerHistory.length} Planner Version{plannerHistory.length !== 1 ? 's' : ''} available
                   </p>
                 </div>
                 
                 {plannerHistory.length > 0 && selectedPlanner && (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-3 shrink-0">
                     {plannerHistory.length > 1 && (
-                      <>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <span className="text-xs text-zinc-500 font-medium">Select Version:</span>
                         <select 
-                          className="bg-[#111] border border-zinc-800 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500/50"
+                          className="bg-[#111] border border-zinc-800 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500/50 max-w-[200px] truncate"
                           onChange={(e) => {
                             const planner = plannerHistory.find(p => p.id === e.target.value)
                             if (planner) handleSelectPlanner(planner)
@@ -434,7 +434,7 @@ function PromptsContent() {
                             </option>
                           ))}
                         </select>
-                      </>
+                      </div>
                     )}
                     <button
                       onClick={async () => {
