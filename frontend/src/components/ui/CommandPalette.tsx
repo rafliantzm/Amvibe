@@ -5,19 +5,32 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, FileText, LayoutTemplate, ShieldAlert, TerminalSquare, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { playWhoosh, playClick } from '@/utils/audio'
+import { createClient } from '@/utils/supabase/client'
 
-export function CommandPalette() {
+interface CommandPaletteProps {
+  adminConfig?: {
+    menuLabel: string;
+    commandLabel: string;
+    commandDesc: string;
+  } | null;
+}
+
+export function CommandPalette({ adminConfig }: CommandPaletteProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const commands = [
+  const baseCommands = [
     { id: 'prd', icon: FileText, label: 'Create New PRD', desc: 'Initialize an AI-generated Product Requirements Document', action: () => router.push('/app/prd') },
     { id: 'planner', icon: LayoutTemplate, label: 'Run Planner', desc: 'Synthesize an architecture implementation plan', action: () => router.push('/app/planner') },
     { id: 'prompts', icon: TerminalSquare, label: 'View Coding Prompts', desc: 'Access the terminal prompt registry', action: () => router.push('/app/prompts') },
-    { id: 'admin', icon: ShieldAlert, label: 'Admin Dashboard', desc: 'Enter God-Mode oversight panel', action: () => router.push('/admin') },
   ]
+
+  const commands = adminConfig 
+    ? [...baseCommands, { id: 'admin', icon: ShieldAlert, label: adminConfig.commandLabel, desc: adminConfig.commandDesc, action: () => router.push('/admin') }]
+    : baseCommands
 
   const filteredCommands = commands.filter(cmd => 
     cmd.label.toLowerCase().includes(query.toLowerCase()) || 
@@ -47,6 +60,7 @@ export function CommandPalette() {
       setTimeout(() => {
         inputRef.current?.focus()
       }, 50)
+      setSelectedIndex(0)
     } else {
       setQuery('')
     }
@@ -79,7 +93,26 @@ export function CommandPalette() {
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  setSelectedIndex(0)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    setSelectedIndex((prev) => Math.min(prev + 1, filteredCommands.length - 1))
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    setSelectedIndex((prev) => Math.max(prev - 1, 0))
+                  } else if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (filteredCommands[selectedIndex]) {
+                      playClick()
+                      filteredCommands[selectedIndex].action()
+                      setIsOpen(false)
+                    }
+                  }
+                }}
                 placeholder="Type a command or search..."
                 className="flex-1 bg-transparent border-none outline-none text-[#ededed] text-[15px] placeholder-[#555] font-light"
               />
@@ -99,6 +132,7 @@ export function CommandPalette() {
                 <div className="space-y-1">
                   {filteredCommands.map((cmd, i) => {
                     const Icon = cmd.icon
+                    const isSelected = i === selectedIndex
                     return (
                       <button
                         key={cmd.id}
@@ -107,18 +141,33 @@ export function CommandPalette() {
                           cmd.action()
                           setIsOpen(false)
                         }}
-                        className="w-full flex items-center justify-between p-3 rounded-[16px] hover:bg-[#34d399]/5 border border-transparent hover:border-[#34d399]/10 group transition-all text-left"
+                        onMouseEnter={() => setSelectedIndex(i)}
+                        className={`w-full flex items-center justify-between p-3 rounded-[16px] border transition-all text-left group ${
+                          isSelected 
+                            ? 'bg-[#34d399]/10 border-[#34d399]/20' 
+                            : 'hover:bg-[#34d399]/5 border-transparent hover:border-[#34d399]/10'
+                        }`}
                       >
                         <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mr-4 group-hover:bg-[#34d399]/10 group-hover:border-[#34d399]/20 transition-all">
-                            <Icon className="w-5 h-5 text-[#888] group-hover:text-[#34d399] transition-colors" />
+                          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mr-4 transition-all ${
+                            isSelected 
+                              ? 'bg-[#34d399]/20 border-[#34d399]/30' 
+                              : 'bg-white/[0.02] border-white/[0.04] group-hover:bg-[#34d399]/10 group-hover:border-[#34d399]/20'
+                          }`}>
+                            <Icon className={`w-5 h-5 transition-colors ${
+                              isSelected ? 'text-[#34d399]' : 'text-[#888] group-hover:text-[#34d399]'
+                            }`} />
                           </div>
                           <div>
-                            <h4 className="text-[14px] font-medium text-[#ededed] mb-0.5 group-hover:text-white">{cmd.label}</h4>
+                            <h4 className={`text-[14px] font-medium mb-0.5 transition-colors ${
+                              isSelected ? 'text-white' : 'text-[#ededed] group-hover:text-white'
+                            }`}>{cmd.label}</h4>
                             <p className="text-[12px] text-[#666] font-light">{cmd.desc}</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-[#555] group-hover:text-[#34d399] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                        <ArrowRight className={`w-4 h-4 transition-all ${
+                          isSelected ? 'text-[#34d399] opacity-100 translate-x-1' : 'text-[#555] group-hover:text-[#34d399] opacity-0 group-hover:opacity-100 group-hover:translate-x-1'
+                        }`} />
                       </button>
                     )
                   })}

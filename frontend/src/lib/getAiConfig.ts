@@ -49,7 +49,7 @@ export async function getAiConfig(): Promise<AiConfig> {
     throw new Error('No AI API key configured. Please set one in the Admin Panel or GOOGLE_GENERATIVE_AI_API_KEY env var.')
   }
 
-  return { apiKey: envKey, modelId: 'gemini-2.5-flash' }
+  return { apiKey: envKey, modelId: 'gemini-3.1-flash-lite' }
 }
 
 /**

@@ -254,7 +254,13 @@ function PromptCard({ index, item }: { index: number, item: ExtractedPrompt }) {
   )
 }
 
-export default function PromptsPage() {
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+
+function PromptsContent() {
+  const searchParams = useSearchParams()
+  const viewId = searchParams.get('view')
+
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [plannerHistory, setPlannerHistory] = useState<PlannerVersion[]>([])
@@ -262,22 +268,7 @@ export default function PromptsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [prompts, setPrompts] = useState<ExtractedPrompt[]>([])
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('projects')
-        .select('id, name')
-        .order('created_at', { ascending: false })
-
-      if (data && !error) {
-        setProjects(data)
-      }
-      setIsLoading(false)
-    }
-    fetchProjects()
-  }, [])
-
+  // Move handleSelectProject definition before useEffect so it can be called
   const handleSelectProject = async (project: Project) => {
     setSelectedProject(project)
     setIsLoading(true)
@@ -297,6 +288,27 @@ export default function PromptsPage() {
     }
     setIsLoading(false)
   }
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name')
+        .order('created_at', { ascending: false })
+
+      if (data && !error) {
+        setProjects(data)
+        if (viewId) {
+          const p = data.find(p => p.id === viewId)
+          if (p) handleSelectProject(p)
+        }
+      } else {
+        setIsLoading(false)
+      }
+    }
+    fetchProjects()
+  }, [viewId])
 
   const handleSelectPlanner = (planner: PlannerVersion) => {
     setSelectedPlanner(planner)
@@ -475,5 +487,17 @@ export default function PromptsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PromptsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-black">
+        <div className="h-6 w-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PromptsContent />
+    </Suspense>
   )
 }

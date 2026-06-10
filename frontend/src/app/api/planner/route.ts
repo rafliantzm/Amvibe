@@ -227,6 +227,7 @@ INSTRUCTIONS:
 5. Use the exact output format specified in your system prompt.
 6. Generate ALL 13 phases (Phase 0 through Phase 12) PLUS the Final Pre-Launch Checklist.
 7. DO NOT truncate or skip any phase. This plan will be used in production.
+8. END your response with EXACTLY "/// END OF PLAN ///" after the final checklist.
 
 Begin the implementation plan now:`
 
@@ -236,7 +237,7 @@ Begin the implementation plan now:`
       model,
       system: systemPrompt,
       prompt: finalPrompt,
-      temperature: 0.3,
+      temperature: 0.5,
       onFinish: async ({ text }) => {
         try {
           if (!projectId) return;

@@ -30,8 +30,14 @@ export default async function UserLayout({
     console.error('Failed to load planner history', e);
   }
 
+  const adminConfig = isAdmin ? {
+    menuLabel: 'Admin Panel',
+    commandLabel: 'Admin Dashboard',
+    commandDesc: 'Enter God-Mode oversight panel'
+  } : null;
+
   return (
-    <ClientLayout userEmail={user?.email} isAdmin={isAdmin} projects={projects || []} planners={planners}>
+    <ClientLayout userEmail={user?.email} isAdmin={isAdmin} adminConfig={adminConfig} projects={projects || []} planners={planners}>
       {children}
     </ClientLayout>
   )

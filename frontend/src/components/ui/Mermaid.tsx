@@ -19,10 +19,46 @@ mermaid.initialize({
   suppressErrorRendering: true,
 })
 
+const sanitizeMermaid = (code: string) => {
+  if (!code) return ''
+  let clean = code
+
+  // 1. Fix unquoted subgraphs with spaces (e.g. `subgraph Edge Layer` -> `subgraph sg_1 ["Edge Layer"]`)
+  let sgCounter = 0;
+  clean = clean.replace(/subgraph\s+([^"\[\n]+)$/gm, (match, p1) => {
+    const trimmed = p1.trim()
+    if (trimmed.includes(' ') || /[()&/'\\]/.test(trimmed)) {
+      sgCounter++;
+      return `subgraph sg_${sgCounter} ["${trimmed}"]`
+    }
+    return match
+  })
+
+  // 2. Fix unquoted node labels with special characters
+  clean = clean.replace(/([A-Za-z0-9_]+)\[([^"\]]+)\]/g, (match, id, label) => {
+    const l = label.trim()
+    if (/[()&/'\\]/.test(l)) {
+      return `${id}["${l}"]`
+    }
+    return match
+  })
+
+  // 3. Fix sequence-diagram style arrows in flowcharts (A --> B: Text)
+  if (clean.includes('graph ') || clean.includes('flowchart ')) {
+    clean = clean.replace(/([A-Za-z0-9_]+)\s*(?:-->|->)\s*([A-Za-z0-9_]+)\s*:\s*(.+)$/gm, '$1 -->|$3| $2')
+  }
+
+  // 4. Safely convert `A -- text --> B` to `A -->|text| B`
+  clean = clean.replace(/([A-Za-z0-9_]+)\s+--\s+(.+?)\s+-->\s+([A-Za-z0-9_]+)/g, '$1 -->|$2| $3')
+
+  return clean
+}
+
 export const Mermaid = ({ chart }: { chart: string }) => {
   const ref = useRef<HTMLDivElement>(null)
   const [svgCode, setSvgCode] = useState<string>('')
   const [hasError, setHasError] = useState(false)
+  const [sanitizedChart, setSanitizedChart] = useState<string>('')
 
   useEffect(() => {
     if (!chart) return
@@ -33,6 +69,9 @@ export const Mermaid = ({ chart }: { chart: string }) => {
         setHasError(false)
         const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`
         
+        const cleanChart = sanitizeMermaid(chart)
+        if (isMounted) setSanitizedChart(cleanChart)
+
         // Temporarily suppress console.error to prevent Next.js Dev Overlay from catching Mermaid's internal parse errors
         const originalConsoleError = console.error;
         console.error = () => {};
@@ -40,7 +79,7 @@ export const Mermaid = ({ chart }: { chart: string }) => {
         let svgContent = '';
         try {
           // Await render while console.error is muted
-          const { svg } = await mermaid.render(id, chart);
+          const { svg } = await mermaid.render(id, cleanChart);
           svgContent = svg;
         } finally {
           // Always restore console.error immediately after render

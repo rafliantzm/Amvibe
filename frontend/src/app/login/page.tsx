@@ -6,6 +6,7 @@ import { loginWithGoogle } from './actions'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
 import { GlitchText } from '@/components/ui/GlitchText'
 import { ShieldCheck, Terminal as TerminalIcon } from 'lucide-react'
+import Link from 'next/link'
 
 const BOOT_LOGS = [
   "INITIALIZING KERNEL...",
@@ -36,9 +37,34 @@ export default function LoginPage() {
   }, [])
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#020202] p-4 font-sans text-[#ededed] relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#020202] font-sans text-[#ededed] relative overflow-hidden">
       {/* Global Grain Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay z-[9999]" />
+      
+      {/* Navigation Header */}
+      <nav className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#111] to-[#222] border border-white/10 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#ededed]">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span className="font-bold tracking-wide text-lg text-white">Amvibe OS</span>
+        </div>
+        
+        <div className="flex items-center space-x-6">
+          <div className="hidden sm:flex items-center space-x-1 text-sm font-medium text-[#888]">
+            <span className="w-4 h-3 bg-red-600 rounded-[2px] inline-block mr-1 opacity-80"></span>
+            ID
+          </div>
+          <Link href="/" className="text-sm font-medium text-[#888] hover:text-[#ededed] transition-colors">
+            Back to Home
+          </Link>
+        </div>
+      </nav>
+
+      {/* Main Login Area */}
+      <div className="flex-1 flex flex-col items-center justify-center relative w-full p-4">
       
       {/* Backgrounds */}
       <AnimatePresence>
@@ -143,6 +169,18 @@ export default function LoginPage() {
           )}
         </AnimatePresence>
       </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center text-xs text-[#555] mt-auto">
+        <div className="mb-4 sm:mb-0">
+          Open source framework • Developed using Next.js & Supabase
+        </div>
+        <div className="flex items-center">
+          <span className="w-3 h-2 bg-red-600 rounded-[1px] inline-block mr-1 opacity-80"></span>
+          Bahasa Indonesia
+        </div>
+      </footer>
     </div>
   )
 }

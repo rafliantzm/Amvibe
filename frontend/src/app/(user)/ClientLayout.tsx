@@ -18,11 +18,16 @@ interface ClientLayoutProps {
   children: React.ReactNode
   userEmail?: string
   isAdmin: boolean
+  adminConfig?: {
+    menuLabel: string;
+    commandLabel: string;
+    commandDesc: string;
+  } | null;
   projects?: any[]
   planners?: any[]
 }
 
-export default function ClientLayout({ children, userEmail, isAdmin, projects = [], planners = [] }: ClientLayoutProps) {
+export default function ClientLayout({ children, userEmail, isAdmin, adminConfig, projects = [], planners = [] }: ClientLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isCompact, setIsCompact] = useState(false)
   const pathname = usePathname()
@@ -56,7 +61,7 @@ export default function ClientLayout({ children, userEmail, isAdmin, projects = 
       <div className={`flex h-screen overflow-hidden bg-transparent relative z-10 ${isCompact ? 'text-[12px]' : 'text-[14px]'}`}>
       <CursorAura />
       <DeveloperConsole />
-      <CommandPalette />
+      <CommandPalette adminConfig={adminConfig} />
       
       {/* Liquid Background Orb for Refraction */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#34d399]/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
@@ -216,6 +221,30 @@ export default function ClientLayout({ children, userEmail, isAdmin, projects = 
               <div className="px-3 py-2 text-[13px] text-[#555] italic">No planners yet</div>
             )}
           </div>
+
+          <div className="px-2 mt-6 mb-3 text-[10px] font-bold text-[#555] uppercase tracking-[0.15em]">
+            Recent Prompts
+          </div>
+          <div className="space-y-1">
+            {planners && planners.length > 0 ? planners.slice(0, 5).map(plan => {
+              const proj = projects.find(p => p.id === plan.project_id)
+              const title = proj ? `${proj.name} Prompts` : `Prompts (${plan.agent_name})`
+              return (
+                <div key={`prompt-${plan.id}`} className="group relative flex items-center">
+                  <Link 
+                    href={`/app/prompts?view=${plan.project_id}`} 
+                    className={`flex-1 flex items-center px-3 py-2 text-[13px] font-medium rounded-lg transition-colors truncate text-[#888] hover:bg-white/[0.02] hover:text-[#ededed] pr-8`}
+                    title={title}
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#60a5fa] mr-2.5 opacity-50 shadow-[0_0_8px_rgba(96,165,250,0.3)] flex-shrink-0"></div>
+                    <span className="truncate">{title}</span>
+                  </Link>
+                </div>
+              )
+            }) : (
+              <div className="px-3 py-2 text-[13px] text-[#555] italic">No prompts yet</div>
+            )}
+          </div>
         </div>
 
         {/* Bottom Profile Area */}
@@ -235,10 +264,10 @@ export default function ClientLayout({ children, userEmail, isAdmin, projects = 
             </button>
           </div>
 
-          {isAdmin && (
+          {adminConfig && (
             <Link href="/admin" className="flex items-center px-3 py-2.5 mb-2 text-[13px] font-medium rounded-xl text-[#888] hover:text-[#ededed] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.04]">
               <ShieldAlert className="mr-3 h-4 w-4 shrink-0" />
-              Admin Panel
+              {adminConfig.menuLabel}
             </Link>
           )}
           

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Send, Sparkles, StopCircle, Download, CheckCircle2, 
   Circle, ChevronRight, Cpu, Zap, Shield, Bot, 
-  Terminal, Code2, Layers, Rocket, ArrowRight, History, Clock
+  Terminal, Code2, Layers, Rocket, ArrowRight, History, Clock, Atom
 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react'
 import { PRDViewer } from '@/components/ui/PRDViewer'
@@ -43,11 +43,11 @@ const AGENTS = [
     id: 'antigravity',
     name: 'Antigravity',
     company: 'Google DeepMind',
-    icon: Zap,
-    color: 'from-blue-500 to-cyan-500',
-    borderColor: 'border-blue-500/30',
-    bgColor: 'bg-blue-500/10',
-    textColor: 'text-blue-400',
+    icon: Atom,
+    color: 'from-purple-500 to-pink-500',
+    borderColor: 'border-purple-500/30',
+    bgColor: 'bg-purple-500/10',
+    textColor: 'text-purple-400',
     description: 'IDE-integrated agent with planning mode, subagents & background tasks.',
     strengths: ['Planning mode', 'Background tasks', 'Full-stack'],
   },
@@ -207,7 +207,7 @@ export default function PlannerPage() {
   // Auto scroll during generation
   useEffect(() => {
     if (isLoading && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+      bottomRef.current.scrollIntoView()
     }
   }, [completion, isLoading])
 
@@ -475,10 +475,15 @@ export default function PlannerPage() {
                             className="flex-1 flex flex-col items-start text-left p-6 w-full h-full relative z-20"
                           >
                             <div className="flex items-center justify-between w-full mb-8">
-                              <div className={`h-12 w-12 border border-white/10 bg-gradient-to-br ${agentData.color} flex items-center justify-center group-hover:scale-110 group-hover:border-white/20 transition-all duration-300 shadow-[inset_0_0_15px_rgba(255,255,255,0.05)] bg-opacity-20 backdrop-blur-sm`}>
-                                <Icon className="text-white drop-shadow-md" size={20} />
+                              <div className={`relative h-12 w-12 rounded-2xl border border-white/5 bg-black/40 flex items-center justify-center group-hover:scale-110 group-hover:border-white/10 transition-all duration-500 overflow-hidden backdrop-blur-md shadow-2xl`}>
+                                {/* Ambient background glow */}
+                                <div className={`absolute inset-0 bg-gradient-to-br ${agentData.color} opacity-20 group-hover:opacity-40 transition-opacity duration-500 mix-blend-screen blur-[2px]`}></div>
+                                {/* Inner shadow & glassy edge */}
+                                <div className="absolute inset-0 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] z-0 rounded-2xl pointer-events-none"></div>
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                                {/* The Icon */}
+                                <Icon className={`relative z-10 ${agentData.textColor} drop-shadow-[0_0_10px_currentColor] group-hover:text-white transition-colors duration-300`} size={24} strokeWidth={1.5} />
                               </div>
-                              <ArrowRight size={18} className="text-[#444] group-hover:text-purple-400 group-hover:-rotate-45 transition-all duration-300" />
                             </div>
                             
                             <div className="mt-auto w-full">
@@ -563,8 +568,11 @@ export default function PlannerPage() {
                         }`}
                       >
                         <div className="flex items-start justify-between mb-3">
-                          <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${agent.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                            <Icon className="text-white" size={20} />
+                          <div className={`relative h-12 w-12 rounded-2xl border ${isSelected ? agent.borderColor : 'border-white/5'} bg-black/40 flex items-center justify-center group-hover:scale-110 transition-all duration-500 overflow-hidden backdrop-blur-md shadow-lg shrink-0`}>
+                            <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} ${isSelected ? 'opacity-30' : 'opacity-10'} group-hover:opacity-30 transition-opacity duration-500 mix-blend-screen blur-[2px]`}></div>
+                            <div className="absolute inset-0 shadow-[inset_0_0_15px_rgba(0,0,0,0.8)] z-0 rounded-2xl pointer-events-none"></div>
+                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                            <Icon className={`relative z-10 ${isSelected ? 'text-white' : agent.textColor} drop-shadow-[0_0_10px_currentColor] transition-colors duration-300`} size={22} strokeWidth={1.5} />
                           </div>
                           <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                             isSelected ? `${agent.borderColor} ${agent.bgColor}` : 'border-zinc-700'

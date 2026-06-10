@@ -5,8 +5,8 @@ import { createAiModel } from '@/lib/getAiConfig'
 
 import { createClient as createBackgroundClient } from '@supabase/supabase-js'
 
-// Allow streaming responses up to 60 seconds
-export const maxDuration = 60
+// Allow streaming responses up to 5 minutes for massive PRDs
+export const maxDuration = 300
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
@@ -46,30 +46,32 @@ CRITICAL INSTRUCTION: You MUST structure the document exactly like a top-tier en
 10. System Architecture (You MUST include a massive, highly complex Mermaid Flowchart (\`mermaid flowchart TD\` or \`graph TD\`) showing the entire system topology: Client, CDN, Load Balancers, API Gateways, Microservices, Event Buses (Kafka/RabbitMQ), and Databases (Primary/Read-Replicas, Redis). Then, write an exhaustive text breakdown of the Infrastructure, Security Policies, Scalability strategies, and CI/CD pipelines).
 11. User Journey (You MUST provide a Mermaid sequence diagram inside a standard markdown code block: \`\`\`mermaid\nsequenceDiagram\nparticipant U as User\n...\n\`\`\`. USE STRICTLY STANDARD ARROWS like ->> and -->>. DO NOT use invalid syntaxes like O--).
 12. Information Architecture (You MUST use standard Markdown. Do NOT use raw HTML. Provide an exhaustive, deeply nested directory tree representing the Routing Structure (e.g., Next.js App Router format \`app/(dashboard)/...\`). Also provide a state management overview (Redux/Zustand logic) and authorization boundary maps).
-13. Data Model & ERD (You MUST output a Mermaid ER diagram inside a code block \`\`\`mermaid\nerDiagram\n...\n\`\`\`. Then, for each table, you MUST use standard Markdown Tables. CRUCIAL: DO NOT write "(Sample Table)" or "etc". You MUST fully write out AT LEAST 10 real tables. You MUST include these tables: Users, Profiles, Organizations, API_Keys, Subscriptions, Payments, Webhooks, Audit_Logs, Roles, Permissions. Include columns for Column Name, Data Type, Constraints, and Description. Below each table, list Indexes and Relationships).
-14. API Design Specification (You MUST use standard Markdown Tables and text. Do NOT use raw HTML. Detail AT LEAST 15 API Endpoints mapping the entire system. For each endpoint, provide the Method, URL, Auth type, exact JSON request schema, exact JSON response schema, and HTTP status codes. CRUCIAL: You MUST include at least 3 Mermaid Sequence Diagrams (\`mermaid sequenceDiagram ...\`) in this section to visually map the API data flow and request/response lifecycle between the Client, API Gateway, and Microservices).
-15. Non-Functional Requirements (Use standard markdown lists grouped by category like Security, Performance, Scalability).
-16. Delivery Milestones (You MUST output directly as raw HTML cards: <div class="bg-[#1a1a1a]/50 border border-[#2a2a2a] rounded-xl p-6 mb-6"><div class="flex justify-between items-start mb-4"><h4 class="text-white font-bold text-md m-0">Phase 1</h4><span class="font-mono text-zinc-500 text-sm">8 weeks</span></div><h6 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-2">Deliverables</h6><p class="text-sm text-zinc-300 mb-4"><span class="text-red-500 mr-2">♦</span> Auth, Routing</p><h6 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-2 border-t border-[#2a2a2a] pt-4">Success Metrics</h6><ul class="text-sm text-zinc-400 space-y-1 list-none m-0 p-0"><li><span class="mr-2">📊</span> 100% success</li></ul></div>).
-17. Success Metrics (You MUST output directly as raw HTML: <div class="bg-red-950/20 border border-red-900/30 rounded-xl p-6 mb-8"><h6 class="text-red-500 text-[10px] font-bold uppercase tracking-widest mb-2">North Star Metric</h6><p class="text-white text-[15px] m-0">Transaction Success Rate</p></div><h6 class="text-zinc-600 text-[10px] font-bold uppercase tracking-widest mb-4">Primary KPIs</h6><table class="w-full text-left text-sm mb-8"><thead class="bg-[#0f0f0f] border-y border-[#2a2a2a]"><tr><th class="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Metric</th><th class="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Target</th><th class="px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-500">Measurement</th></tr></thead><tbody class="divide-y divide-[#2a2a2a]"><tr><td class="px-5 py-4 font-bold text-white">System Uptime</td><td class="px-5 py-4 font-mono text-zinc-300">99.99%</td><td class="px-5 py-4 text-zinc-500">Monitoring</td></tr></tbody></table>).
-18. Risks & Mitigations (You MUST output each risk directly as raw HTML cards: <div class="bg-[#1a1a1a]/50 border border-[#2a2a2a] rounded-xl p-5 mb-4"><div class="flex justify-between items-start mb-2"><h4 class="text-white font-bold text-sm m-0">Risk description.</h4><div class="flex space-x-2"><span class="text-red-500 text-[10px] font-bold uppercase">High</span><span class="text-zinc-500 text-[10px] uppercase">P: Medium</span></div></div><p class="text-zinc-300 text-[13px] m-0"><strong class="text-white">Mitigation:</strong> Mitigation strategy.</p></div>).
-19. Open Architectural Questions (List 2-3 technical/business questions that need to be resolved).
+10. System Architecture (Include Mermaid Flowchart and concise infrastructure description).
+11. User Journey (Include Mermaid sequence diagram).
+12. Information Architecture (Markdown directory tree and state management).
+13. Data Model & ERD (Mermaid ER diagram and 8 standard Markdown tables).
+14. API Design Specification (Standard Markdown tables for 8 endpoints).
+15. Non-Functional Requirements (Bullet points).
+16. Delivery Milestones (HTML cards as specified).
+17. Success Metrics (HTML cards as specified).
+18. Risks & Mitigations (HTML cards as specified).
+19. Open Architectural Questions.
 
-When generating the PRD, DO NOT output a short summary. You MUST output a massive, highly detailed, comprehensive specification document (target >3000 words).
+When generating the PRD, DO NOT output a short summary. You MUST output all 19 sections, but be concise and direct. Use bullet points heavily.
 You are writing for Senior Silicon Valley Engineers and VCs. Adopt the 'Amazon Working Backwards' and 'Agile Epic' mentalities.
 
-MANDATORY ENTERPRISE DEPTH REQUIREMENTS:
-- Generate AT LEAST 3 Detailed User Personas with demographic, psychographic, and technical constraints.
-- Generate AT LEAST 8 Core Product Features. For each, you MUST detail the System Logic, Edge Cases, Data Integrity, and API Contract assumptions.
-- Generate AT LEAST 6 User Stories. Use standard BDD format (Given/When/Then) for Acceptance Criteria.
-- Generate AT LEAST 4 User Flows. Detail state machines, queue mechanisms, failure fallbacks, and retry policies. YOU MUST WRAP THESE IN THE EXACT HTML TEMPLATE PROVIDED! DO NOT OUTPUT PLAIN TEXT!
-- Generate AT LEAST 15 Data Model tables in the ERD section using standard Markdown Tables. Specify exact UUIDs, B-Tree/Hash indexing strategies, JSONB usage, foreign keys, and cascading rules.
-- Generate AT LEAST 15 API Endpoints. Provide exact JSON schemas, idempotency mechanisms, HTTP status codes (200, 201, 400, 401, 403, 404, 409, 422, 429, 500), and rate limit headers.
-- For System Architecture, detail the exact infrastructure (e.g., AWS EKS, RDS Multi-AZ, Redis ElastiCache, Kafka/RabbitMQ), CI/CD pipelines, horizontal scaling policies, webhook exponential backoffs, and SOC2/PCI-DSS security layers.
-- If the user mentions 'README', 'install', 'database migration', or 'simulate payment', integrate exact shell commands and config file examples deep into the Architecture and API sections.
+MANDATORY REQUIREMENTS:
+- Generate 2 Detailed User Personas.
+- Generate 5 Core Product Features.
+- Generate 4 User Stories. Use standard BDD format (Given/When/Then).
+- Generate 2 User Flows. YOU MUST WRAP THESE IN THE EXACT HTML TEMPLATE PROVIDED!
+- Generate 8 Data Model tables in the ERD section using standard Markdown Tables.
+- Generate 8 API Endpoints. Provide method, JSON schemas, and HTTP status codes.
+- For System Architecture, detail the exact infrastructure concisely.
 
 CRITICAL: DO NOT OUTPUT PLAIN TEXT FOR SECTIONS THAT REQUIRE HTML GRIDS/CARDS. YOU MUST USE THE HTML WRAPPERS EXACTLY AS SPECIFIED.
 
-You must be comprehensive, extremely detailed, and output the absolute maximum amount of professional engineering depth possible.`
+You must be comprehensive but balance depth with brevity to ensure you finish all 19 sections.`
 
     let finalPrompt = prompt;
 
@@ -91,6 +93,7 @@ ${previousPrdContent}`;
       system: systemPrompt,
       prompt: finalPrompt,
       temperature: 0.7,
+      maxTokens: 8192,
       onFinish: async ({ text }) => {
         try {
           if (!user?.id || !token) {
