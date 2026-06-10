@@ -119,10 +119,12 @@ export const Mermaid = ({ chart }: { chart: string }) => {
   }
 
   return (
-    <div 
-      className="mermaid flex justify-center py-6 overflow-x-auto bg-[#0a0a0a] rounded-xl border border-[#1a1a1a] shadow-inner mb-8"
-      ref={ref}
-      dangerouslySetInnerHTML={{ __html: svgCode }}
-    />
+    <div className="w-full overflow-x-auto bg-[#0a0a0a] rounded-xl border border-[#1a1a1a] shadow-inner mb-8">
+      <div 
+        className="mermaid min-w-max p-6 flex items-center justify-center"
+        ref={ref}
+        dangerouslySetInnerHTML={{ __html: svgCode }}
+      />
+    </div>
   )
 }

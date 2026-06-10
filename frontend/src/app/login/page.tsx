@@ -52,12 +52,12 @@ export default function LoginPage() {
           <span className="font-bold tracking-wide text-lg text-white">Amvibe OS</span>
         </div>
         
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-3 sm:space-x-6">
           <div className="hidden sm:flex items-center space-x-1 text-sm font-medium text-[#888]">
             <span className="w-4 h-3 bg-red-600 rounded-[2px] inline-block mr-1 opacity-80"></span>
             ID
           </div>
-          <Link href="/" className="text-sm font-medium text-[#888] hover:text-[#ededed] transition-colors">
+          <Link href="/" className="text-xs sm:text-sm font-medium text-[#888] hover:text-[#ededed] transition-colors">
             Back to Home
           </Link>
         </div>

@@ -55,10 +55,10 @@ export default function UserDashboard() {
           variants={container}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6"
         >
           {/* PRD Generator (Featured 8-col) */}
-          <motion.div variants={item} className="md:col-span-8 group h-full">
+          <motion.div variants={item} className="lg:col-span-8 group h-full">
             <TiltCard intensity={10} className="h-full">
               <Link href="/app/prd" className="block h-full relative p-8 md:p-10 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.05] transition-all duration-500 overflow-hidden shadow-2xl">
               {/* Subtle inner shadow for depth */}
@@ -86,7 +86,7 @@ export default function UserDashboard() {
           </motion.div>
 
           {/* Quick Stats (4-col Stacked) */}
-          <motion.div variants={item} className="md:col-span-4 flex flex-col gap-4 md:gap-6">
+          <motion.div variants={item} className="lg:col-span-4 flex flex-col gap-4 md:gap-6">
             <TiltCard intensity={15} className="flex-1">
               <div className="h-full rounded-[32px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] p-8 relative overflow-hidden group hover:border-white/[0.15] hover:bg-white/[0.05] transition-all duration-500 shadow-2xl">
               <div className="absolute inset-0 rounded-[32px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
@@ -106,7 +106,7 @@ export default function UserDashboard() {
           </motion.div>
 
           {/* Next Step Planner (6-col) */}
-          <motion.div variants={item} className="md:col-span-6 group">
+          <motion.div variants={item} className="lg:col-span-6 group">
             <TiltCard intensity={12}>
               <Link href="/app/planner" className="block h-[280px] relative p-8 md:p-10 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.05] transition-all duration-500 overflow-hidden shadow-2xl">
               <div className="absolute inset-0 rounded-[32px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
@@ -131,7 +131,7 @@ export default function UserDashboard() {
           </motion.div>
 
           {/* Coding Prompts (6-col) */}
-          <motion.div variants={item} className="md:col-span-6 group">
+          <motion.div variants={item} className="lg:col-span-6 group">
             <TiltCard intensity={12}>
               <Link href="/app/prompts" className="block h-[280px] relative p-8 md:p-10 rounded-[32px] bg-white/[0.03] backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.05] transition-all duration-500 overflow-hidden shadow-2xl">
               <div className="absolute inset-0 rounded-[32px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />

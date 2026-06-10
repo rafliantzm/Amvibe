@@ -153,14 +153,14 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
         {/* Inner Centered Content Wrapper */}
         <div className="max-w-5xl mx-auto px-8">
           {/* Header (Scrolls away naturally) */}
-          <div className="mb-6 flex items-start justify-between">
-            <div className="flex-1">
+          <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex-1 w-full">
               <h1 className="text-[28px] font-bold text-white mb-1 leading-tight tracking-tight">{projectName}</h1>
-              <p className="text-zinc-500 text-sm truncate max-w-xl">{activeContent.slice(0, 80).replace(/[#*`\n]/g, '')}...</p>
+              <p className="text-zinc-500 text-sm truncate max-w-full md:max-w-xl">{activeContent.slice(0, 80).replace(/[#*`\n]/g, '')}...</p>
             </div>
 
             {/* Action Buttons Group */}
-            <div className="flex items-center space-x-2 shrink-0 print:hidden">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 print:hidden">
               {/* ToC Button (Kept as fallback/dropdown, though minimap exists) */}
               <div className="relative" ref={tocRef}>
                 <button 

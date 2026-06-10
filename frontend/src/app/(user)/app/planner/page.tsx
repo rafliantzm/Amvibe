@@ -622,8 +622,8 @@ export default function PlannerPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 w-full">
+                  <div className="flex-1">
                     <button
                       onClick={() => setStep('history')}
                       className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline mb-2 block"
@@ -636,12 +636,12 @@ export default function PlannerPage() {
                         const Icon = agentData.icon
                         return (
                           <>
-                            <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${agentData.color} flex items-center justify-center`}>
+                            <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${agentData.color} flex items-center justify-center shrink-0`}>
                               <Icon className="text-white" size={16} />
                             </div>
-                            <div>
-                              <h2 className="text-xl font-bold text-white">Saved Implementation Plan</h2>
-                              <p className="text-zinc-500 text-xs">
+                            <div className="truncate">
+                              <h2 className="text-xl font-bold text-white truncate">Saved Implementation Plan</h2>
+                              <p className="text-zinc-500 text-xs truncate">
                                 {selectedProject?.name} → {agentData.name} ({new Date(selectedHistoryItem.created_at).toLocaleDateString()})
                               </p>
                             </div>
@@ -650,7 +650,7 @@ export default function PlannerPage() {
                       })()}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <button
                       onClick={() => handleDownloadMd(selectedHistoryItem.content, selectedHistoryItem.agent_name)}
                       className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors"

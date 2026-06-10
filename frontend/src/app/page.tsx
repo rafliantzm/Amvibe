@@ -26,17 +26,17 @@ export default function Home() {
           <span className="font-bold tracking-wide text-lg text-white">Amvibe OS</span>
         </div>
         
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-3 sm:space-x-6">
           <div className="hidden sm:flex items-center space-x-1 text-sm font-medium text-[#888]">
             <span className="w-4 h-3 bg-red-600 rounded-[2px] inline-block mr-1 opacity-80"></span>
             ID
           </div>
-          <Link href="/login" className="text-sm font-medium text-[#888] hover:text-[#ededed] transition-colors">
+          <Link href="/login" className="hidden sm:block text-sm font-medium text-[#888] hover:text-[#ededed] transition-colors">
             Log in
           </Link>
           <Link 
             href="/login" 
-            className="text-sm font-medium px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#34d399]/30 transition-all text-[#ededed] shadow-lg shadow-black/50 hover:shadow-[#34d399]/10"
+            className="text-xs sm:text-sm font-medium px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#34d399]/30 transition-all text-[#ededed] shadow-lg shadow-black/50 hover:shadow-[#34d399]/10"
           >
             Launch Amvibe OS
           </Link>
@@ -47,9 +47,9 @@ export default function Home() {
       <main className="relative z-10 flex-1 flex flex-col items-center">
         
         {/* Hero Section */}
-        <section className="w-full max-w-7xl mx-auto px-6 pt-20 pb-32 flex flex-col lg:flex-row items-center justify-between">
-          <div className="w-full lg:w-1/2 pr-0 lg:pr-12 mb-16 lg:mb-0">
-            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] mb-6 font-serif">
+        <section className="w-full max-w-7xl mx-auto px-6 pt-12 pb-20 lg:pt-20 lg:pb-32 flex flex-col lg:flex-row items-center justify-between">
+          <div className="w-full lg:w-1/2 pr-0 lg:pr-12 mb-12 lg:mb-0">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.1] mb-6 font-serif">
               Turn ideas into<br />system architecture
             </h1>
             <p className="text-lg text-[#888] mb-10 max-w-xl leading-relaxed font-light">
@@ -77,8 +77,8 @@ export default function Home() {
         </section>
 
         {/* Feature Highlights Grid */}
-        <section id="how-it-works" className="w-full max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <section id="how-it-works" className="w-full max-w-7xl mx-auto px-6 py-16 lg:py-24 border-t border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             <div className="bg-[#111] border border-white/5 p-8 rounded-2xl flex flex-col h-full hover:border-[#34d399]/30 hover:bg-[#141414] transition-all">
               <div className="w-10 h-10 rounded-full bg-[#34d399]/10 border border-[#34d399]/20 flex items-center justify-center mb-6 text-[#34d399]">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l10 6.5-10 6.5-10-6.5L12 2z"/><path d="M12 22l10-6.5-10-6.5-10 6.5L12 22z"/><path d="M12 15.5L2 9l10 6.5 10-6.5-10 6.5z"/></svg>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { PlusCircle, Search, ShieldAlert, LogOut, MonitorSmartphone } from 'lucide-react'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
@@ -31,6 +31,19 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isCompact, setIsCompact] = useState(false)
   const pathname = usePathname()
+
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false)
+    }
+  }, [])
+
+  // Auto close on mobile when navigating
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false)
+    }
+  }, [pathname])
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -67,9 +80,24 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#34d399]/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-pulse" style={{ animationDuration: '12s' }} />
 
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Floating Sidebar */}
-      <div className={`py-4 pl-4 pr-0 h-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0
-        ${isSidebarOpen ? 'w-[280px]' : 'w-0 opacity-0 overflow-hidden !p-0'}`}>
+      <div className={`
+        fixed md:relative top-0 left-0 z-40 h-full
+        py-4 pl-4 pr-4 md:pr-0 
+        transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0
+        ${isSidebarOpen 
+          ? 'translate-x-0 w-[280px]' 
+          : '-translate-x-full md:translate-x-0 w-[280px] md:w-0 md:opacity-0 md:overflow-hidden md:!p-0'
+        }
+      `}>
         
         <aside 
           className="h-full rounded-[24px] border border-white/[0.04] bg-black/40 backdrop-blur-3xl saturate-[1.5] flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.03)] overflow-hidden relative z-10"
@@ -295,7 +323,7 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
           {!isSidebarOpen && (
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-4 left-4 z-50 p-2 text-zinc-400 hover:text-zinc-100 transition-colors rounded-md hover:bg-white/5 bg-[#0a0a0a] border border-[#1a1a1a] shadow-lg"
+              className="absolute top-4 left-4 z-30 p-2 text-zinc-400 hover:text-zinc-100 transition-colors rounded-md hover:bg-white/5 bg-[#0a0a0a] border border-[#1a1a1a] shadow-lg"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
