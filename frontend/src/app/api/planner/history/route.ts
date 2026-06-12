@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const projectId = searchParams.get('projectId')
+
+    console.log('[API] /api/planner/history GET called with projectId:', projectId)
 
     if (!projectId) {
       return new NextResponse('Project ID required', { status: 400 })
@@ -14,7 +18,10 @@ export async function GET(req: Request) {
     const dataDir = path.join(process.cwd(), 'data')
     const historyFile = path.join(dataDir, 'planner_history.json')
 
+    console.log('[API] checking historyFile:', historyFile)
+
     if (!fs.existsSync(historyFile)) {
+      console.log('[API] historyFile does not exist')
       return NextResponse.json([])
     }
 

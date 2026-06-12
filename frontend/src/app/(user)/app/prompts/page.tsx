@@ -268,22 +268,26 @@ function PromptsContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [prompts, setPrompts] = useState<ExtractedPrompt[]>([])
 
-  // Move handleSelectProject definition before useEffect so it can be called
   const handleSelectProject = async (project: Project) => {
     setSelectedProject(project)
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/planner/history?projectId=${project.id}`)
+      const res = await fetch(`/api/planner/history?projectId=${project.id}&t=${Date.now()}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setPlannerHistory(data)
         if (data && data.length > 0) {
-          handleSelectPlanner(data[0]) // Select the latest plan automatically
+          try {
+            handleSelectPlanner(data[0]) // Select the latest plan automatically
+          } catch (err) {
+            console.error('Error in handleSelectPlanner:', err)
+          }
         }
       } else {
         setPlannerHistory([])
       }
     } catch (e) {
+      console.error('Fetch error:', e)
       setPlannerHistory([])
     }
     setIsLoading(false)
@@ -301,8 +305,12 @@ function PromptsContent() {
         setProjects(data)
         if (viewId) {
           const p = data.find(p => p.id === viewId)
-          if (p) handleSelectProject(p)
+          if (p) {
+            handleSelectProject(p)
+            return // handleSelectProject manages its own loading state
+          }
         }
+        setIsLoading(false)
       } else {
         setIsLoading(false)
       }
@@ -336,7 +344,7 @@ function PromptsContent() {
                 <GlitchText text="Prompts" speed={0.8} />
               </span>
             </h1>
-            <p className="text-[#888] max-w-2xl text-[15px] leading-relaxed">
+            <p className="text-[#888] max-w-2xl text-[15px] leading-relaxed mb-4">
               Ready-to-use prompts extracted directly from your Next Step Planner. Simply click copy and paste into your favorite AI Agent.
             </p>
           </div>
