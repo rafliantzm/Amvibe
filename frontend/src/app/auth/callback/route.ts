@@ -1,22 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-
-function normalizeAppOrigin(origin: string) {
-  try {
-    const url = new URL(origin)
-    if (url.hostname === '0.0.0.0') {
-      url.hostname = 'localhost'
-    }
-
-    return url.origin
-  } catch {
-    return 'http://localhost:3000'
-  }
-}
+import { resolveAppOrigin } from '@/utils/app-origin'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const safeOrigin = normalizeAppOrigin(origin)
+  const { searchParams } = new URL(request.url)
+  const safeOrigin = resolveAppOrigin({ requestUrl: request.url })
   const code = searchParams.get('code')
   
   if (code) {

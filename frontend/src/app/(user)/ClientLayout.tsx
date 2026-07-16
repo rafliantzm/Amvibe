@@ -383,7 +383,7 @@ export default function ClientLayout({ children, userEmail, isAdmin: _isAdmin, a
       </div>
 
       {/* Main Content */}
-        <div className="flex-1 overflow-y-auto relative bg-transparent z-0 transition-all duration-300 app-scroll-surface">
+        <div className="relative z-0 flex-1 min-h-0 bg-transparent transition-all duration-300">
           {!isSidebarOpen && (
             <div 
               className="fixed top-0 left-0 w-6 md:w-8 h-full z-50 cursor-pointer group/edge flex items-center"
@@ -403,7 +403,7 @@ export default function ClientLayout({ children, userEmail, isAdmin: _isAdmin, a
               </div>
             </div>
           )}
-          <div className="min-h-full overflow-auto relative z-10 app-scroll-surface">
+          <div className="relative z-10 h-full min-h-0 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.main 
                 key={pathname}
@@ -411,7 +411,7 @@ export default function ClientLayout({ children, userEmail, isAdmin: _isAdmin, a
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                className="min-h-full relative z-10"
+                className="relative z-10 h-full min-h-0"
               >
                 {children}
               </motion.main>
