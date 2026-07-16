@@ -1,5 +1,11 @@
+import fs from 'fs'
+import path from 'path'
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+
+interface PlannerHistoryEntry {
+  project_id: string
+}
 
 export async function DELETE(req: Request) {
   try {
@@ -11,9 +17,9 @@ export async function DELETE(req: Request) {
     }
 
     const supabase = await createClient()
-    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !session?.user) {
+    if (authError || !user) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
@@ -22,7 +28,7 @@ export async function DELETE(req: Request) {
       .from('projects')
       .delete()
       .eq('id', projectId)
-      .eq('owner_id', session.user.id) // Ensure they own it
+      .eq('owner_id', user.id) // Ensure they own it
 
     if (deleteError) {
       console.error('Error deleting project:', deleteError)
@@ -30,14 +36,12 @@ export async function DELETE(req: Request) {
     }
 
     // Note: We also might want to clean up planner_history.json
-    const fs = require('fs')
-    const path = require('path')
     const dataDir = path.join(process.cwd(), 'data')
     const historyFile = path.join(dataDir, 'planner_history.json')
 
     if (fs.existsSync(historyFile)) {
-      const history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'))
-      const newHistory = history.filter((item: any) => item.project_id !== projectId)
+      const history = JSON.parse(fs.readFileSync(historyFile, 'utf-8')) as PlannerHistoryEntry[]
+      const newHistory = history.filter((item) => item.project_id !== projectId)
       fs.writeFileSync(historyFile, JSON.stringify(newHistory, null, 2))
     }
 

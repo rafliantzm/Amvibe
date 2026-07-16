@@ -2,6 +2,8 @@ import { streamText } from 'ai'
 import { createClient } from '@/utils/supabase/server'
 import { createAiModel } from '@/lib/getAiConfig'
 import { NextResponse } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 export const maxDuration = 120
 export const dynamic = 'force-dynamic'
@@ -38,7 +40,7 @@ const AGENT_CONFIG: Record<string, {
     bestPractices: 'Use --approval-mode full-auto for automation. Reference AGENTS.md for team-wide context. Use --quiet for CI pipelines.'
   },
   'kiro': {
-    setup: 'Amazon Kiro IDE. Use spec-driven development workflow: Requirements → Design → Tasks → Execute.',
+    setup: 'Amazon Kiro IDE. Use spec-driven development workflow: Requirements â†’ Design â†’ Tasks â†’ Execute.',
     contextFile: '.kiro/steering/ directory for persistent agent instructions (product.md, tech.md, structure.md)',
     specialCapabilities: 'Spec-Driven Dev, Steering Rules (always-on/auto/manual hooks), deep AWS integration, requirement traceability.',
     bestPractices: 'Always create specs before coding. Use hooks for automated tasks on file save. Link requirements to implementation for traceability.'
@@ -57,20 +59,39 @@ const AGENT_CONFIG: Record<string, {
   }
 }
 
+interface PlannerHistoryEntry {
+  id: string
+  project_id: string
+  agent_name: string
+  content: string
+  created_at: string
+}
+
 export async function POST(req: Request) {
   console.log('--- API /api/planner CALLED ---')
   try {
     const supabase = await createClient()
-    const { data: { session }, error: authError } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (authError || !session?.user) {
-      console.warn('⚠️ Planner API: no valid session.')
+    if (authError || !user) {
+      return new NextResponse('Unauthorized', { status: 401 })
     }
 
     const { prdContent, selectedAgent, projectName, projectId } = await req.json()
 
     if (!prdContent || !selectedAgent || !projectId) {
       return new NextResponse('PRD content, agent selection, and projectId are required', { status: 400 })
+    }
+
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('owner_id', user.id)
+      .single()
+
+    if (projectError || !project) {
+      return new NextResponse('Forbidden', { status: 403 })
     }
 
     const agentCfg = AGENT_CONFIG[selectedAgent] || {
@@ -104,26 +125,26 @@ For EACH phase, use this structure:
 
 > **Objective**: [One sentence explaining the goal of this phase.]
 
-#### 📋 Tasks
+#### ðŸ“‹ Tasks
 - [ ] [Specific task 1]
 - [ ] [Specific task 2]
 - [ ] [Specific task 3]
 
-#### 🤖 Agent Prompt
+#### ðŸ¤– Agent Prompt
 \`\`\`
 [Complete, paste-ready prompt for ${selectedAgent}. Must be specific to the project. Reference actual entities, file paths, and technologies from the PRD. Be detailed enough that the agent can execute without clarification.]
 \`\`\`
 
-#### 📁 Expected Files & Artifacts
+#### ðŸ“ Expected Files & Artifacts
 | File/Directory | Purpose |
 |---|---|
 | \`path/to/file.ext\` | What this file does |
 
-#### ✅ Acceptance Criteria
+#### âœ… Acceptance Criteria
 - [ ] [Measurable criterion 1]
 - [ ] [Measurable criterion 2]
 
-#### 🔍 Verification Commands
+#### ðŸ” Verification Commands
 \`\`\`bash
 # Command to verify this phase is complete
 verification_command --flag
@@ -152,7 +173,7 @@ Cover: RESTful or GraphQL API design, every endpoint from the PRD, request valid
 Cover: Design system setup (Shadcn/Radix/custom), global state management, routing, layout components, responsive design tokens, dark mode.
 
 **Phase 6: Feature Implementation**
-Cover: Implement EVERY feature listed in the PRD. Break each feature into: component → API hook → state → UI. Be very specific.
+Cover: Implement EVERY feature listed in the PRD. Break each feature into: component â†’ API hook â†’ state â†’ UI. Be very specific.
 
 **Phase 7: Third-Party Integrations**
 Cover: All external APIs mentioned in the PRD (payments, email, storage, etc.), webhook handling, API key rotation strategy, integration testing.
@@ -174,7 +195,7 @@ Cover: Error tracking (Sentry), application performance monitoring (APM), uptime
 
 ---
 
-### 🏁 Final Pre-Launch Checklist
+### ðŸ Final Pre-Launch Checklist
 
 #### Security Audit
 - [ ] All secrets in environment variables (none hardcoded)
@@ -222,7 +243,7 @@ ${prdContent}
 INSTRUCTIONS:
 1. Read the entire PRD above carefully before writing a single line.
 2. Extract all entities, features, APIs, tech stack details, and non-functional requirements.
-3. Reference them SPECIFICALLY in every phase — especially in the Agent Prompts.
+3. Reference them SPECIFICALLY in every phase â€” especially in the Agent Prompts.
 4. The Agent Prompts must be so detailed that a developer can copy-paste them without reading the PRD separately.
 5. Use the exact output format specified in your system prompt.
 6. Generate ALL 13 phases (Phase 0 through Phase 12) PLUS the Final Pre-Launch Checklist.
@@ -241,9 +262,6 @@ Begin the implementation plan now:`
       onFinish: async ({ text }) => {
         try {
           if (!projectId) return;
-          
-          const fs = require('fs');
-          const path = require('path');
           const dataDir = path.join(process.cwd(), 'data');
           const historyFile = path.join(dataDir, 'planner_history.json');
           
@@ -251,11 +269,11 @@ Begin the implementation plan now:`
             fs.mkdirSync(dataDir, { recursive: true });
           }
 
-          let history: any[] = [];
+          let history: PlannerHistoryEntry[] = [];
           if (fs.existsSync(historyFile)) {
             try {
-              history = JSON.parse(fs.readFileSync(historyFile, 'utf-8'));
-            } catch (e) {
+              history = JSON.parse(fs.readFileSync(historyFile, 'utf-8')) as PlannerHistoryEntry[];
+            } catch {
               history = [];
             }
           }
@@ -269,16 +287,16 @@ Begin the implementation plan now:`
           });
 
           fs.writeFileSync(historyFile, JSON.stringify(history, null, 2));
-          console.log('✅ Planner history saved to local file system successfully');
+          console.log('âœ… Planner history saved to local file system successfully');
 
-        } catch (e) {
-          console.error('Failed to save planner in onFinish:', e);
+        } catch (error) {
+          console.error('Failed to save planner in onFinish:', error);
         }
       }
     })
 
     return result.toTextStreamResponse()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error generating plan:', error)
     return new NextResponse('Internal Server Error', { status: 500 })
   }

@@ -1,19 +1,20 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { motion, useSpring } from 'framer-motion'
+import { useMotionProfile } from '@/lib/useMotionProfile'
 
 export function CursorAura() {
-  const [mounted, setMounted] = useState(false)
-  
-  // Use framer-motion springs for fluid, physics-based movement
+  const { enableEnhancedMotion } = useMotionProfile()
   const springConfig = { damping: 25, stiffness: 200, mass: 0.5 }
   const mouseX = useSpring(0, springConfig)
   const mouseY = useSpring(0, springConfig)
 
   useEffect(() => {
-    setMounted(true)
-    
+    if (!enableEnhancedMotion) {
+      return
+    }
+
     // Initial position center of screen
     mouseX.set(window.innerWidth / 2)
     mouseY.set(window.innerHeight / 2)
@@ -23,11 +24,13 @@ export function CursorAura() {
       mouseY.set(e.clientY)
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
     return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [mouseX, mouseY])
+  }, [enableEnhancedMotion, mouseX, mouseY])
 
-  if (!mounted) return null
+  if (!enableEnhancedMotion) {
+    return null
+  }
 
   return (
     <motion.div
@@ -37,6 +40,7 @@ export function CursorAura() {
         y: mouseY,
         translateX: '-50%',
         translateY: '-50%',
+        willChange: 'transform',
       }}
     />
   )

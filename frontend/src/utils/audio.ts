@@ -3,10 +3,18 @@
 // Singleton AudioContext to prevent creating multiple contexts
 let audioCtx: AudioContext | null = null
 
+declare global {
+  interface Window {
+    webkitAudioContext?: typeof AudioContext
+  }
+}
+
 function getAudioContext() {
   if (typeof window === 'undefined') return null
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const AudioContextCtor = window.AudioContext ?? window.webkitAudioContext
+    if (!AudioContextCtor) return null
+    audioCtx = new AudioContextCtor()
   }
   return audioCtx
 }

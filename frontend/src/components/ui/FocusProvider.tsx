@@ -12,14 +12,14 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
   const [isFocused, setIsFocused] = useState(false)
 
   useEffect(() => {
-    const handleFocusIn = (e: Event) => {
-      const target = e.target as HTMLElement
+    const handleFocusIn = (event: Event) => {
+      const target = event.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
         setIsFocused(true)
       }
     }
 
-    const handleFocusOut = (e: Event) => {
+    const handleFocusOut = () => {
       setIsFocused(false)
     }
 

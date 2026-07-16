@@ -3,24 +3,29 @@
 import React, { useState, useEffect } from 'react'
 
 interface GlitchTextProps {
-  text: string;
-  className?: string;
-  delay?: number; // MS before starting the decoding
+  text: string
+  className?: string
+  delay?: number // MS before starting the decoding
+  speed?: number // Multiplier for decode cadence
 }
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*<>_/'
 
-export function GlitchText({ text, className = '', delay = 0 }: GlitchTextProps) {
+export function GlitchText({ text, className = '', delay = 0, speed = 1 }: GlitchTextProps) {
   const [displayText, setDisplayText] = useState('')
   const [isDone, setIsDone] = useState(false)
 
   useEffect(() => {
     let iteration = 0
     let interval: NodeJS.Timeout | null = null
+    let timeout: NodeJS.Timeout | null = null
+    const safeSpeed = Math.max(speed, 0.1)
+    const frameMs = Math.max(16, Math.round(30 / safeSpeed))
 
     const startDecoding = () => {
+      setIsDone(false)
       interval = setInterval(() => {
-        setDisplayText((prev) => {
+        setDisplayText(() => {
           return text
             .split('')
             .map((letter, index) => {
@@ -40,19 +45,20 @@ export function GlitchText({ text, className = '', delay = 0 }: GlitchTextProps)
         }
 
         iteration += 1 / 3 // Controls speed of decoding
-      }, 30)
+      }, frameMs)
     }
 
     if (delay > 0) {
-      setTimeout(startDecoding, delay)
+      timeout = setTimeout(startDecoding, delay)
     } else {
       startDecoding()
     }
 
     return () => {
       if (interval) clearInterval(interval)
+      if (timeout) clearTimeout(timeout)
     }
-  }, [text, delay])
+  }, [text, delay, speed])
 
   return (
     <span className={`${className} ${!isDone ? 'font-mono tracking-widest text-[#34d399]' : ''}`}>

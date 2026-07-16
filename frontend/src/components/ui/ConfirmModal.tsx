@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, X } from 'lucide-react'
 
@@ -23,12 +23,6 @@ export function ConfirmModal({
   onCancel,
   isDestructive = true
 }: ConfirmModalProps) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   // Lock body scroll
   useEffect(() => {
     if (isOpen) {
@@ -51,7 +45,7 @@ export function ConfirmModal({
     return () => { document.body.style.overflow = 'unset' }
   }, [isOpen])
 
-  if (!mounted) return null
+  if (typeof document === 'undefined') return null
 
   return (
     <AnimatePresence>

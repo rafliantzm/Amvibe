@@ -90,7 +90,7 @@ const DEMO_SCENARIOS = [
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-4">
           <div className="text-[10px] text-[#555] font-bold tracking-widest mb-2">CLI COMMAND EXTRACTED</div>
           <div className="p-3 bg-black border border-white/10 rounded font-mono text-[#34d399] text-[9px] leading-relaxed">
-            $ cursor --instruction "Build the auth module using Supabase according to the architecture draft"<br/>
+            $ cursor --instruction &quot;Build the auth module using Supabase according to the architecture draft&quot;<br/>
             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0, duration: 0.2 }}>
               &gt; Analyzing context files...<br/>
             </motion.span>

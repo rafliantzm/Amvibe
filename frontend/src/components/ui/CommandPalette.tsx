@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, FileText, LayoutTemplate, ShieldAlert, TerminalSquare, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { playWhoosh, playClick } from '@/utils/audio'
-import { createClient } from '@/utils/supabase/client'
 
 interface CommandPaletteProps {
   adminConfig?: {

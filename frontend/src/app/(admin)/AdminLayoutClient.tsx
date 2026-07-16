@@ -1,8 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Settings, Users, Activity, LogOut, ArrowLeft, Cpu } from 'lucide-react'
+import { Settings, Users, Activity, LogOut, ArrowLeft, Cpu, Menu } from 'lucide-react'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
 
 const NAV_ITEMS = [
@@ -18,15 +19,53 @@ const BREADCRUMBS: Record<string, string> = {
 }
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const pathname = usePathname()
   const breadcrumb = BREADCRUMBS[pathname] || 'Overview'
   const sections = ['Overview', 'Governance']
 
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false)
+      }
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
+  }, [pathname])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const shouldLockOverlay = isSidebarOpen && window.innerWidth < 768
+
+    document.body.classList.toggle('app-overlay-open', shouldLockOverlay)
+    document.documentElement.classList.toggle('app-overlay-open', shouldLockOverlay)
+
+    return () => {
+      document.body.classList.remove('app-overlay-open')
+      document.documentElement.classList.remove('app-overlay-open')
+    }
+  }, [isSidebarOpen])
+
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 overscroll-contain touch-none"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 border-r border-zinc-800/50 bg-zinc-950 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-zinc-800/50">
+      <aside className={`
+        fixed md:relative top-0 left-0 z-50 h-full w-64 border-r border-zinc-800/50 bg-zinc-950 flex flex-col transition-transform duration-300 transform-gpu will-change-transform
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-zinc-800/50">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded bg-gradient-to-br from-indigo-500 to-purple-600 shadow-sm shadow-indigo-500/20 flex items-center justify-center">
               <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,9 +74,15 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             </div>
             <h1 className="text-base font-bold text-zinc-100">Control Center</h1>
           </div>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="md:hidden p-1.5 text-zinc-500 hover:text-white hover:bg-white/5 rounded-md"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 app-scroll-surface">
           {sections.map(section => {
             const items = NAV_ITEMS.filter(i => i.section === section)
             return (
@@ -88,17 +133,23 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-zinc-950/50 relative">
+      <main className="flex-1 overflow-y-auto bg-zinc-950/50 relative min-w-0 w-full app-scroll-surface">
         <div className="absolute inset-0 bg-[#0a0a0a] -z-20" />
         <NeuralMesh />
         <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none -z-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-        <div className="h-16 flex items-center px-8 border-b border-white/[0.05] bg-[#020202]/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="h-16 flex items-center px-4 md:px-8 border-b border-white/[0.05] bg-[#020202]/80 backdrop-blur-xl sticky top-0 z-30">
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="md:hidden mr-3 p-2 text-zinc-400 hover:text-zinc-100 transition-colors rounded-md hover:bg-white/5"
+          >
+            <Menu size={20} />
+          </button>
           <h2 className="text-[11px] font-mono uppercase tracking-widest text-[#888]">
             Admin <span className="mx-2 text-[#444]">&rsaquo;</span>
             <span className="text-[#ededed]">{breadcrumb}</span>
           </h2>
         </div>
-        <div className="p-8 animate-fade-in">
+        <div className="p-4 md:p-8 animate-fade-in w-full min-w-0">
           {children}
         </div>
       </main>

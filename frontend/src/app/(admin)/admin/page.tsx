@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { Cpu, Users, Key, Activity, Server, Network, Terminal, ShieldAlert } from 'lucide-react'
 import { GlitchText } from '@/components/ui/GlitchText'
 
@@ -14,7 +14,7 @@ export default function AdminDashboard() {
     { time: '15:24:15', type: 'DB', msg: 'Connection pool stabilized', level: 'success' },
   ])
 
-  // Fake stream simulation for the FUI effect
+  // Simulated stream used for the admin dashboard preview.
   useEffect(() => {
     const timer = setInterval(() => {
       const newTime = new Date().toTimeString().split(' ')[0]
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -42,9 +42,13 @@ export default function AdminDashboard() {
     }
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
+    }
   }
 
   return (
@@ -69,19 +73,26 @@ export default function AdminDashboard() {
           </h1>
           <p className="text-[#34d399] font-mono text-[11px] uppercase tracking-[0.2em] flex items-center bg-[#34d399]/10 border border-[#34d399]/20 px-3 py-1 rounded-sm w-max shadow-[0_0_15px_rgba(52,211,153,0.15)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#34d399] mr-3 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-            System Status: Nominal
+            Preview Mode: Simulated Telemetry
           </p>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
           <div className="px-3 py-1.5 bg-[#050505] border border-white/[0.08] text-[10px] font-mono text-[#888] flex items-center shadow-inner">
-            <span className="text-[#555] mr-2">LTC</span>
-            <span className="text-[#34d399]">14ms</span>
+            <span className="text-[#555] mr-2">MODE</span>
+            <span className="text-[#34d399]">demo</span>
           </div>
           <div className="px-3 py-1.5 bg-[#050505] border border-white/[0.08] text-[10px] font-mono text-[#888] flex items-center shadow-inner">
-            <span className="text-[#555] mr-2">UP</span>
-            <span className="text-blue-400">99.99%</span>
+            <span className="text-[#555] mr-2">DATA</span>
+            <span className="text-blue-400">sample</span>
           </div>
         </div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mb-8 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-[11px] font-mono uppercase tracking-widest text-amber-300"
+      >
+        This overview is a visual preview. Metrics and event stream below are simulated and should not be used as live production telemetry.
       </motion.div>
       
       {/* Metrics Row */}
@@ -226,50 +237,50 @@ export default function AdminDashboard() {
             <span className="text-[9px] font-mono text-[#555] uppercase tracking-widest">Routing: Optimal</span>
           </div>
           
-          <div className="flex-1 flex items-center justify-center relative z-20">
-            <div className="flex items-center space-x-6 relative">
+          <div className="flex-1 flex items-center sm:justify-center relative z-20 overflow-x-auto no-scrollbar w-full min-w-0 px-4 md:px-0">
+            <div className="flex items-center space-x-4 md:space-x-6 relative min-w-max py-8">
               {/* Background glowing rings for Core */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-[#34d399]/5 animate-[spin_10s_linear_infinite]"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-dashed border-[#34d399]/10 animate-[spin_15s_linear_infinite_reverse]"></div>
 
               {/* Edge Node */}
               <div className="flex flex-col items-center relative group">
-                <div className="w-12 h-12 bg-[#050505] border border-white/[0.1] flex items-center justify-center mb-3 relative z-10 transition-colors group-hover:border-blue-500/50">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-[#050505] border border-white/[0.1] flex items-center justify-center mb-3 relative z-10 transition-colors group-hover:border-blue-500/50">
                   <Server size={18} className="text-[#888] group-hover:text-blue-400 transition-colors" />
                 </div>
                 <span className="text-[10px] font-mono text-[#555] uppercase tracking-widest bg-[#020202] px-2 py-1 border border-white/[0.05]">Edge</span>
               </div>
               
               {/* Connection 1 */}
-              <div className="h-[1px] w-16 bg-white/[0.05] relative">
+              <div className="h-[1px] w-8 md:w-16 bg-white/[0.05] relative">
                 <motion.div 
                   animate={{ left: ['0%', '100%'] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  className="absolute w-8 h-[1px] bg-gradient-to-r from-transparent via-[#34d399] to-transparent shadow-[0_0_10px_#34d399]"
+                  className="absolute w-4 md:w-8 h-[1px] bg-gradient-to-r from-transparent via-[#34d399] to-transparent shadow-[0_0_10px_#34d399]"
                 />
               </div>
 
               {/* Core Node */}
               <div className="flex flex-col items-center relative group">
-                <div className="w-20 h-20 bg-black border border-[#34d399]/30 shadow-[inset_0_0_20px_rgba(52,211,153,0.1),0_0_15px_rgba(52,211,153,0.2)] flex items-center justify-center mb-3 z-10 relative">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-black border border-[#34d399]/30 shadow-[inset_0_0_20px_rgba(52,211,153,0.1),0_0_15px_rgba(52,211,153,0.2)] flex items-center justify-center mb-3 z-10 relative">
                   <div className="absolute inset-0 border border-[#34d399]/20 animate-ping" style={{ animationDuration: '3s' }}></div>
-                  <Cpu size={32} className="text-[#34d399] filter drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  <Cpu size={24} className="md:w-8 md:h-8 text-[#34d399] filter drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                 </div>
                 <span className="text-[10px] font-mono text-[#34d399] uppercase tracking-widest bg-[#020202] px-2 py-1 border border-[#34d399]/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]">Core</span>
               </div>
 
               {/* Connection 2 */}
-              <div className="h-[1px] w-16 bg-white/[0.05] relative">
+              <div className="h-[1px] w-8 md:w-16 bg-white/[0.05] relative">
                 <motion.div 
                   animate={{ left: ['0%', '100%'] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: 0.5 }}
-                  className="absolute w-8 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_10px_#a855f7]"
+                  className="absolute w-4 md:w-8 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent shadow-[0_0_10px_#a855f7]"
                 />
               </div>
 
               {/* DB Node */}
               <div className="flex flex-col items-center relative group">
-                <div className="w-12 h-12 bg-[#050505] border border-white/[0.1] flex items-center justify-center mb-3 z-10 transition-colors group-hover:border-purple-500/50">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-[#050505] border border-white/[0.1] flex items-center justify-center mb-3 z-10 transition-colors group-hover:border-purple-500/50">
                   <Key size={18} className="text-[#888] group-hover:text-purple-400 transition-colors" />
                 </div>
                 <span className="text-[10px] font-mono text-[#555] uppercase tracking-widest bg-[#020202] px-2 py-1 border border-white/[0.05]">DB</span>

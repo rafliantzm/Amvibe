@@ -1,0 +1,9 @@
+Database credentials were removed from this file during security hardening.
+
+Use environment variables or your secrets manager instead:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- application-specific database credentials stored outside the repository
+
+If any credentials were ever committed here previously, rotate them immediately.

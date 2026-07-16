@@ -15,7 +15,7 @@ mermaid.initialize({
     secondaryColor: '#27272a',
     tertiaryColor: '#111111',
   },
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   suppressErrorRendering: true,
 })
 
@@ -58,7 +58,6 @@ export const Mermaid = ({ chart }: { chart: string }) => {
   const ref = useRef<HTMLDivElement>(null)
   const [svgCode, setSvgCode] = useState<string>('')
   const [hasError, setHasError] = useState(false)
-  const [sanitizedChart, setSanitizedChart] = useState<string>('')
 
   useEffect(() => {
     if (!chart) return
@@ -70,7 +69,6 @@ export const Mermaid = ({ chart }: { chart: string }) => {
         const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`
         
         const cleanChart = sanitizeMermaid(chart)
-        if (isMounted) setSanitizedChart(cleanChart)
 
         // Temporarily suppress console.error to prevent Next.js Dev Overlay from catching Mermaid's internal parse errors
         const originalConsoleError = console.error;
@@ -89,7 +87,7 @@ export const Mermaid = ({ chart }: { chart: string }) => {
         if (isMounted) {
           setSvgCode(svgContent)
         }
-      } catch (error) {
+      } catch {
         // Do NOT use console.error here. Next.js will overlay it.
         console.warn('Mermaid syntax error caught gracefully, rendering fallback UI.');
         if (isMounted) {
@@ -119,9 +117,9 @@ export const Mermaid = ({ chart }: { chart: string }) => {
   }
 
   return (
-    <div className="w-full overflow-x-auto bg-[#0a0a0a] rounded-xl border border-[#1a1a1a] shadow-inner mb-8">
+    <div className="w-full min-w-0 overflow-x-auto bg-[#0a0a0a] rounded-xl border border-[#1a1a1a] shadow-inner mb-8">
       <div 
-        className="mermaid min-w-max p-6 flex items-center justify-center"
+        className="mermaid min-w-max md:min-w-full p-4 md:p-6 flex items-center justify-center"
         ref={ref}
         dangerouslySetInnerHTML={{ __html: svgCode }}
       />

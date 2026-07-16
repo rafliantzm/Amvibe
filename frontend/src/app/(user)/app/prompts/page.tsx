@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Copy, Code2, Layers, Terminal, Sparkles, ChevronRight, CheckCircle2, Circle } from 'lucide-react'
+import { Check, Copy, Code2, Layers, Terminal, Sparkles, ChevronRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { GlitchText } from '@/components/ui/GlitchText'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
@@ -268,7 +268,13 @@ function PromptsContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [prompts, setPrompts] = useState<ExtractedPrompt[]>([])
 
-  const handleSelectProject = async (project: Project) => {
+  const handleSelectPlanner = useCallback((planner: PlannerVersion) => {
+    setSelectedPlanner(planner)
+    const extracted = extractPrompts(planner.content)
+    setPrompts(extracted)
+  }, [])
+
+  const handleSelectProject = useCallback(async (project: Project) => {
     setSelectedProject(project)
     setIsLoading(true)
     try {
@@ -279,8 +285,8 @@ function PromptsContent() {
         if (data && data.length > 0) {
           try {
             handleSelectPlanner(data[0]) // Select the latest plan automatically
-          } catch (err) {
-            console.error('Error in handleSelectPlanner:', err)
+          } catch (error) {
+            console.error('Error in handleSelectPlanner:', error)
           }
         }
       } else {
@@ -291,7 +297,7 @@ function PromptsContent() {
       setPlannerHistory([])
     }
     setIsLoading(false)
-  }
+  }, [handleSelectPlanner])
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -315,22 +321,16 @@ function PromptsContent() {
         setIsLoading(false)
       }
     }
-    fetchProjects()
-  }, [viewId])
-
-  const handleSelectPlanner = (planner: PlannerVersion) => {
-    setSelectedPlanner(planner)
-    const extracted = extractPrompts(planner.content)
-    setPrompts(extracted)
-  }
+    void fetchProjects()
+  }, [handleSelectProject, viewId])
 
   return (
     <div className="flex flex-col h-screen w-full relative animate-fade-in bg-transparent">
       <NeuralMesh />
       <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay z-0" />
       
-      <div className="flex-1 overflow-y-auto px-8 no-scrollbar relative z-10">
-        <div className="max-w-5xl mx-auto pt-10 pb-20">
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 no-scrollbar relative z-10 w-full min-w-0">
+        <div className="max-w-5xl mx-auto pt-10 pb-20 w-full min-w-0">
 
           {/* Header */}
           <div className="mb-12">
@@ -338,13 +338,13 @@ function PromptsContent() {
               <Code2 size={12} />
               <span>Developer Assistant</span>
             </div>
-            <h1 className="text-4xl font-medium tracking-tight text-[#ededed] mb-3 flex items-center space-x-3">
+            <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-[#ededed] mb-3 flex items-center space-x-3">
               <span>Coding</span>
               <span className="text-[#34d399] drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
                 <GlitchText text="Prompts" speed={0.8} />
               </span>
             </h1>
-            <p className="text-[#888] max-w-2xl text-[15px] leading-relaxed mb-4">
+            <p className="text-[#888] max-w-2xl text-[14px] md:text-[15px] leading-relaxed mb-4">
               Ready-to-use prompts extracted directly from your Next Step Planner. Simply click copy and paste into your favorite AI Agent.
             </p>
           </div>
@@ -374,26 +374,20 @@ function PromptsContent() {
                     <button
                       key={project.id}
                       onClick={() => handleSelectProject(project)}
-                      className={`group w-full text-left p-6 rounded-[24px] border transition-all duration-300 relative overflow-hidden hover:scale-[1.02] ${
-                        selectedProject?.id === project.id
-                          ? 'bg-[#34d399]/10 border-[#34d399]/40 shadow-[0_0_20px_rgba(52,211,153,0.15)]'
-                          : 'bg-[#030303]/40 backdrop-blur-xl border-white/[0.05] hover:border-white/[0.15] hover:bg-white/[0.05]'
-                      }`}
+                      className="group w-full text-left p-4 md:p-6 rounded-[20px] md:rounded-[24px] border transition-all duration-300 relative overflow-hidden hover:scale-[1.02] bg-[#030303]/40 backdrop-blur-xl border-white/[0.05] hover:border-white/[0.15] hover:bg-white/[0.05]"
                     >
-                      <div className="absolute inset-0 rounded-[24px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
-                      <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center space-x-4">
-                          <div className={`h-12 w-12 rounded-xl border flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner ${
-                            selectedProject?.id === project.id ? 'bg-[#34d399]/20 border-[#34d399]/50' : 'bg-[#111] border-[#222]'
-                          }`}>
-                            <Layers className={`${selectedProject?.id === project.id ? 'text-[#34d399]' : 'text-[#888]'}`} size={20} />
+                      <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
+                      <div className="flex items-center justify-between relative z-10 w-full min-w-0">
+                        <div className="flex items-center space-x-3 md:space-x-4 flex-1 min-w-0 mr-2">
+                          <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-inner bg-[#111] border-[#222]">
+                            <Layers className="text-[#888]" size={18} />
                           </div>
-                          <div>
-                            <h3 className="text-[#ededed] font-medium text-[15px] truncate max-w-[280px] tracking-tight">{project.name}</h3>
-                            <p className="text-[#666] text-[10px] font-mono uppercase tracking-wider mt-1">PRD Object</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-[#ededed] font-medium text-[14px] md:text-[15px] truncate tracking-tight">{project.name}</h3>
+                            <p className="text-[#666] text-[10px] font-mono uppercase tracking-wider mt-1 truncate">PRD Object</p>
                           </div>
                         </div>
-                        <ChevronRight size={18} className={`transition-all duration-300 ${selectedProject?.id === project.id ? 'text-[#34d399] translate-x-1' : 'text-[#444] group-hover:text-[#ededed]'}`} />
+                        <ChevronRight size={18} className="shrink-0 transition-all duration-300 text-[#444] group-hover:text-[#ededed]" />
                       </div>
                     </button>
                   ))}
@@ -436,7 +430,7 @@ function PromptsContent() {
                           }}
                           value={selectedPlanner?.id || ''}
                         >
-                          {plannerHistory.map((plan, i) => (
+                          {plannerHistory.map((plan) => (
                             <option key={plan.id} value={plan.id}>
                               {plan.agent_name} - {new Date(plan.created_at).toLocaleString()}
                             </option>
@@ -454,7 +448,7 @@ function PromptsContent() {
                             } else {
                               alert('Failed to delete planner history.')
                             }
-                          } catch (err) {
+                          } catch {
                             alert('Error deleting planner history.')
                           }
                         }

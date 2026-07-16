@@ -1,20 +1,23 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Send, Sparkles, FileText, Settings2, Plus, StopCircle, List, Download, Printer, Trash2 } from 'lucide-react'
+import { useRef, useEffect, useMemo, useState } from 'react'
+import { Send, FileText, Settings2, Plus, StopCircle, List, Download, Printer, Trash2 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react'
 import { PRDViewer } from '@/components/ui/PRDViewer'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
 
 export default function PRDPage() {
-  const router = useRouter()
-
-  const { completion, input, handleInputChange, handleSubmit, isLoading, stop, setInput } = useCompletion({
+  const {
+    completion,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    stop,
+    setCompletion,
+    setInput,
+  } = useCompletion({
     api: '/api/prd',
     streamProtocol: 'text',
     onFinish: () => {
@@ -42,16 +45,74 @@ export default function PRDPage() {
   })
   
   const bottomRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const tocRef = useRef<HTMLDivElement>(null)
+  const [isTocOpen, setIsTocOpen] = useState(false)
+  const visibleContent = completion || ''
+  const headings = useMemo(() => {
+    const regex = /^(#{1,3})\s+(.+)$/gm
+    const matches: Array<{ id: string; level: number; text: string }> = []
+    let match: RegExpExecArray | null
+
+    while ((match = regex.exec(visibleContent)) !== null) {
+      matches.push({
+        level: match[1].length,
+        text: match[2],
+        id: match[2].toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
+      })
+    }
+
+    return matches
+  }, [visibleContent])
 
   // Auto-scroll to bottom as content generates
   useEffect(() => {
     if (completion && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+      bottomRef.current.scrollIntoView({ block: 'end' })
     }
   }, [completion])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tocRef.current && !tocRef.current.contains(event.target as Node)) {
+        setIsTocOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const handleCardClick = (promptText: string) => {
     setInput(promptText)
+  }
+
+  const handleDownloadMd = () => {
+    if (!visibleContent) return
+
+    const blob = new Blob([visibleContent], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `amvibe-prd-draft-${new Date().toISOString().slice(0, 10)}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handlePrintPdf = () => {
+    if (!visibleContent) return
+    window.print()
+  }
+
+  const handleJumpToHeading = (id: string) => {
+    setIsTocOpen(false)
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const handleClearDraft = () => {
+    setCompletion('')
+    setInput('')
+    setIsTocOpen(false)
   }
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -98,7 +159,7 @@ export default function PRDPage() {
                   <FileText size={16} className="mr-2 text-[#555] group-hover:text-[#34d399] transition-colors" /> 
                   E-Commerce Architecture
                 </h3>
-                <p className="text-[13px] text-[#888] font-light">"Build a PRD for a modern e-commerce platform focusing on sneakers with AR try-on features and social sharing."</p>
+                <p className="text-[13px] text-[#888] font-light">&quot;Build a PRD for a modern e-commerce platform focusing on sneakers with AR try-on features and social sharing.&quot;</p>
               </div>
               <div 
                 onClick={() => handleCardClick("Create a specification document for an AI-powered CRM designed specifically for real estate agents.")}
@@ -108,7 +169,7 @@ export default function PRDPage() {
                   <Settings2 size={16} className="mr-2 text-[#555] group-hover:text-[#34d399] transition-colors" /> 
                   SaaS CRM Engine
                 </h3>
-                <p className="text-[13px] text-[#888] font-light">"Create a specification document for an AI-powered CRM designed specifically for real estate agents."</p>
+                <p className="text-[13px] text-[#888] font-light">&quot;Create a specification document for an AI-powered CRM designed specifically for real estate agents.&quot;</p>
               </div>
             </div>
           </div>
@@ -118,34 +179,71 @@ export default function PRDPage() {
             <div className="mb-6 flex items-start justify-between">
               <div className="flex-1">
                 <h1 className="text-[28px] font-bold text-white mb-1 leading-tight tracking-tight">Drafting PRD...</h1>
-                <p className="text-zinc-500 text-sm truncate max-w-xl">{completion.slice(0, 80).replace(/[#*`\n]/g, '')}...</p>
+                <p className="text-zinc-500 text-sm truncate max-w-xl">{visibleContent.slice(0, 80).replace(/[#*`\n]/g, '')}...</p>
               </div>
 
               {/* Action Buttons Group */}
               <div className="flex items-center space-x-2 shrink-0">
-                <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors">
-                  <List size={14} /> <span>ToC</span>
-                </button>
+                <div className="relative" ref={tocRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsTocOpen((open) => !open)}
+                    disabled={headings.length === 0}
+                    className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors"
+                  >
+                    <List size={14} /> <span>ToC</span>
+                  </button>
+
+                  {isTocOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-72 rounded-xl border border-zinc-800 bg-[#111] p-2 shadow-2xl z-50">
+                      <div className="max-h-80 overflow-y-auto space-y-1">
+                        {headings.map((heading) => (
+                          <button
+                            key={heading.id}
+                            type="button"
+                            onClick={() => handleJumpToHeading(heading.id)}
+                            className={`block w-full rounded-lg px-3 py-2 text-left text-[12px] text-zinc-400 hover:bg-white/5 hover:text-zinc-200 transition-colors ${
+                              heading.level === 1 ? 'font-bold text-white' : heading.level === 2 ? 'pl-4' : 'pl-6'
+                            }`}
+                          >
+                            {heading.text}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 <div className="h-4 w-[1px] bg-zinc-800 mx-1"></div>
 
-                <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors">
+                <button
+                  type="button"
+                  onClick={handleDownloadMd}
+                  className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors"
+                >
                   <Download size={14} /> <span>.md</span>
                 </button>
                 
-                <button className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors">
+                <button
+                  type="button"
+                  onClick={handlePrintPdf}
+                  className="flex items-center space-x-2 bg-white/5 hover:bg-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium border border-zinc-800 transition-colors"
+                >
                   <Printer size={14} /> <span>PDF</span>
                 </button>
 
                 <button 
-                  onClick={() => setInput('')}
+                  type="button"
+                  onClick={handleClearDraft}
                   className="flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 px-3 py-2 rounded-xl text-xs font-medium border border-red-500/20 transition-colors ml-2"
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
             </div>
-            <PRDViewer content={completion || '*Generating PRD...*'} />
+            <div ref={contentRef}>
+              <PRDViewer content={visibleContent || '*Generating PRD...*'} />
+            </div>
           </div>
         )}
         <div ref={bottomRef} className="h-4" />
@@ -153,27 +251,29 @@ export default function PRDPage() {
       </div>
 
       {/* Floating Input Area (Flex Footer) */}
-      <div className="pt-4 pb-4 px-8 relative z-10">
-        <div className="relative max-w-4xl mx-auto">
-          {/* Glow effect behind input */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+      <div className="pt-2 pb-6 px-4 md:px-8 relative z-20">
+        <div className="relative max-w-3xl mx-auto group">
+          {/* Animated Glow effect behind input */}
+          <div className="absolute -inset-[1px] bg-gradient-to-r from-[#34d399]/30 via-purple-500/30 to-[#34d399]/30 rounded-[32px] blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500 animate-[pulse_4s_ease-in-out_infinite]"></div>
           
-          <form onSubmit={onSubmit} className="relative bg-[#1a1a1a]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 flex items-end shadow-2xl">
-            <button type="button" className="p-3 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors shrink-0 mb-1">
-              <Plus size={20} />
+          <form onSubmit={onSubmit} className="relative bg-[#050505]/80 backdrop-blur-3xl border border-white/[0.08] rounded-[32px] p-2 flex items-end shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-300 focus-within:border-white/[0.15] focus-within:bg-[#0a0a0a]/90">
+            <button type="button" className="p-3.5 text-[#666] hover:text-[#ededed] hover:bg-white/[0.05] rounded-full transition-all shrink-0 mb-1 ml-1 group/btn" title="Add context">
+              <Plus size={22} className="transition-transform duration-300 group-hover/btn:rotate-90" />
             </button>
             
             <textarea 
               value={input}
               onChange={handleInputChange}
               placeholder="Jelaskan aplikasi yang ingin Anda bangun secara detail..."
-              className="flex-1 bg-transparent text-white placeholder-zinc-500 border-none outline-none resize-none px-3 py-4 max-h-48 min-h-[56px] text-base leading-relaxed no-scrollbar"
+              className="flex-1 bg-transparent text-[#ededed] placeholder-[#555] border-none outline-none resize-none px-4 py-4 max-h-[200px] min-h-[60px] text-[15px] leading-relaxed no-scrollbar"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
-                  handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)
-                  setInput('')
+                  if (input.trim()) {
+                    handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)
+                    setInput('')
+                  }
                 }
               }}
             />
@@ -182,27 +282,34 @@ export default function PRDPage() {
               <button 
                 type="button" 
                 onClick={stop}
-                className="p-3 rounded-2xl transition-all shrink-0 mb-1 ml-2 bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                className="p-3.5 rounded-full transition-all shrink-0 mb-1 mr-1 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 flex items-center justify-center"
               >
-                <StopCircle size={20} />
+                <StopCircle size={22} className="animate-pulse" />
               </button>
             ) : (
               <button 
                 type="submit" 
                 suppressHydrationWarning
                 disabled={!input.trim()}
-                className={`p-3 rounded-2xl transition-all shrink-0 mb-1 ml-2 ${
+                className={`p-3.5 rounded-full transition-all duration-300 shrink-0 mb-1 mr-1 relative flex items-center justify-center overflow-hidden ${
                   input.trim() 
-                    ? 'bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]' 
-                    : 'bg-white/5 text-zinc-600 cursor-not-allowed'
+                    ? 'bg-[#34d399] text-[#020202] shadow-[0_0_20px_rgba(52,211,153,0.4)] scale-100 hover:scale-105' 
+                    : 'bg-white/[0.03] text-[#444] cursor-not-allowed scale-95'
                 }`}
               >
-                <Send size={20} className={input.trim() ? 'translate-x-0.5 -translate-y-0.5' : ''} />
+                {input.trim() && (
+                  <div className="absolute inset-0 bg-white/20 animate-pulse pointer-events-none"></div>
+                )}
+                <Send size={20} className={`relative z-10 transition-transform duration-300 ${input.trim() ? 'translate-x-0.5 -translate-y-0.5' : ''}`} />
               </button>
             )}
           </form>
-          <div className="text-center mt-3">
-            <span className="text-xs text-zinc-500">Amvibe AI menggunakan Gemini 3.1 Flash Lite. Harap tinjau ulang PRD yang dihasilkan.</span>
+          <div className="mt-3 px-4 pb-1 text-center md:mt-4 md:px-0">
+            <span className="mx-auto block max-w-[340px] text-[11px] font-mono uppercase tracking-[0.18em] leading-relaxed text-[#696969] md:max-w-none md:text-[10px] md:tracking-widest md:text-[#555]">
+              <span className="block md:inline">Powered by Gemini 3.1 Flash Lite</span>
+              <span className="hidden opacity-40 md:mx-2 md:inline">|</span>
+              <span className="mt-1 block opacity-80 md:mt-0 md:inline md:opacity-60">Harap tinjau ulang hasil PRD</span>
+            </span>
           </div>
         </div>
       </div>

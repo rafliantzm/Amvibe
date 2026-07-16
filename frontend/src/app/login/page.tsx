@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { loginWithGoogle } from './actions'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
 import { GlitchText } from '@/components/ui/GlitchText'
-import { ShieldCheck, Terminal as TerminalIcon } from 'lucide-react'
+import { AlertTriangle, ShieldCheck, Terminal as TerminalIcon } from 'lucide-react'
 import Link from 'next/link'
 
 const BOOT_LOGS = [
@@ -18,10 +18,22 @@ const BOOT_LOGS = [
 ]
 
 export default function LoginPage() {
-  const [bootStep, setBootStep] = useState(0)
+  const [bootStep, setBootStep] = useState(1)
   const [logs, setLogs] = useState<string[]>([])
+  const [loginError] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const rawError = new URLSearchParams(window.location.search).get('error')
+    return rawError ? rawError.replace(/\+/g, ' ').trim() : null
+  })
 
   useEffect(() => {
+    if (bootStep === 1) {
+      return
+    }
+
     let currentLog = 0
     const interval = setInterval(() => {
       if (currentLog < BOOT_LOGS.length) {
@@ -34,7 +46,7 @@ export default function LoginPage() {
     }, 150)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [bootStep])
 
   return (
     <div className="flex flex-col min-h-screen bg-[#020202] font-sans text-[#ededed] relative overflow-hidden">
@@ -70,7 +82,7 @@ export default function LoginPage() {
       <AnimatePresence>
         {bootStep === 1 && (
           <motion.div 
-            initial={{ opacity: 0 }} 
+            initial={false}
             animate={{ opacity: 1 }} 
             transition={{ duration: 2 }}
             className="absolute inset-0 z-0"
@@ -110,7 +122,7 @@ export default function LoginPage() {
           ) : (
             <motion.div
               key="login"
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="relative"
@@ -140,6 +152,18 @@ export default function LoginPage() {
                     </p>
                   </div>
                 </div>
+
+                {loginError && (
+                  <div className="mb-6 flex items-start gap-3 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-left shadow-[0_0_20px_rgba(245,158,11,0.08)]">
+                    <AlertTriangle className="mt-0.5 shrink-0 text-amber-400" size={16} />
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-amber-300">Auth error</p>
+                      <p className="mt-1 text-sm text-amber-100/90">
+                        {loginError}. Please try again. If this keeps happening, re-open the login flow.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 
                 <form action={loginWithGoogle} className="mt-16">
                   <button

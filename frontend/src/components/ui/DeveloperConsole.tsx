@@ -32,8 +32,10 @@ export function DeveloperConsole() {
   }, [isOpen])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [history])
+    if (isOpen) {
+      bottomRef.current?.scrollIntoView()
+    }
+  }, [history, isOpen])
 
   const handleCommand = (cmd: string) => {
     const trimmed = cmd.trim().toLowerCase()

@@ -1,0 +1,300 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="297mm" height="420mm" viewBox="0 0 2970 4200" role="img" aria-labelledby="title desc">
+  <title id="title">Amvibe Showcase Poster A3</title>
+  <desc id="desc">Poster A3 bergaya premium untuk memperkenalkan showcase, keunggulan, dan alur Amvibe kepada khalayak umum.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#030303"/>
+      <stop offset="48%" stop-color="#07130f"/>
+      <stop offset="100%" stop-color="#07070a"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="32%" cy="18%" r="55%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.24"/>
+      <stop offset="56%" stop-color="#34d399" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="82%" cy="16%" r="46%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.18"/>
+      <stop offset="52%" stop-color="#8b5cf6" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="stroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0"/>
+      <stop offset="48%" stop-color="#34d399" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="46"/>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="36" stdDeviation="42" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <pattern id="grid" width="110" height="110" patternUnits="userSpaceOnUse">
+      <path d="M 110 0 L 0 0 0 110" fill="none" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+    </pattern>
+    <style>
+      .sans { font-family: Inter, Arial, Helvetica, sans-serif; }
+      .serif { font-family: Lora, Georgia, "Times New Roman", serif; }
+      .mono { font-family: "JetBrains Mono", Consolas, monospace; }
+      .white { fill: #f4f4f5; }
+      .soft { fill: #b8bac3; }
+      .muted { fill: #8f949d; }
+      .dim { fill: #6f757e; }
+      .green { fill: #62f1bf; }
+    </style>
+  </defs>
+
+  <rect width="2970" height="4200" fill="url(#bg)"/>
+  <rect width="2970" height="4200" fill="url(#grid)"/>
+  <circle cx="920" cy="820" r="920" fill="url(#glowA)" filter="url(#blur)"/>
+  <circle cx="2350" cy="760" r="720" fill="url(#glowB)" filter="url(#blur)"/>
+
+  <path d="M180 650 L560 320 L930 540 L1280 290 L1650 580 L2040 410 L2420 730 L2790 470" fill="none" stroke="#34d399" stroke-opacity="0.16" stroke-width="3"/>
+  <path d="M180 2960 L640 2690 L1070 3040 L1460 2790 L1870 3150 L2300 2870 L2790 3210" fill="none" stroke="#34d399" stroke-opacity="0.16" stroke-width="3"/>
+
+  <g transform="translate(170,150)">
+    <rect x="0" y="0" width="332" height="76" rx="38" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.1"/>
+    <circle cx="40" cy="38" r="9" fill="#34d399"/>
+    <text x="68" y="48" class="mono" font-size="27" letter-spacing="8" fill="#d7d8dd">AMVIBE ENTERPRISE</text>
+  </g>
+
+  <g transform="translate(170,300)">
+    <text x="0" y="0" class="serif white" font-size="136" font-weight="700">
+      <tspan x="0" dy="0">Dari ide mentah</tspan>
+      <tspan x="0" dy="150">menjadi rencana produk</tspan>
+      <tspan x="0" dy="150">yang lebih siap dibangun.</tspan>
+    </text>
+
+    <text x="0" y="560" class="sans soft" font-size="42" font-weight="400">
+      <tspan x="0" dy="0">Amvibe membantu siapa pun menjelaskan ide aplikasi dengan lebih jelas,</tspan>
+      <tspan x="0" dy="58">lalu mengubahnya menjadi dokumen kebutuhan, peta langkah kerja,</tspan>
+      <tspan x="0" dy="58">dan prompt siap eksekusi untuk developer atau AI coding assistant.</tspan>
+    </text>
+
+    <g transform="translate(0,790)">
+      <rect x="0" y="0" width="1500" height="178" rx="34" fill="#050505" fill-opacity="0.54" stroke="url(#stroke)" stroke-width="3"/>
+      <line x1="500" y1="36" x2="500" y2="142" stroke="#ffffff" stroke-opacity="0.08"/>
+      <line x1="1000" y1="36" x2="1000" y2="142" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="48" y="64" class="mono green" font-size="21" letter-spacing="5">PRD GENERATOR</text>
+      <text x="48" y="122" class="sans white" font-size="36" font-weight="600">Merapikan kebutuhan produk</text>
+
+      <text x="548" y="64" class="mono green" font-size="21" letter-spacing="5">NEXT STEP PLANNER</text>
+      <text x="548" y="122" class="sans white" font-size="36" font-weight="600">Memecah pekerjaan jadi fase</text>
+
+      <text x="1048" y="64" class="mono green" font-size="21" letter-spacing="5">CODING PROMPTS</text>
+      <text x="1048" y="122" class="sans white" font-size="36" font-weight="600">Menjembatani ide ke eksekusi</text>
+    </g>
+  </g>
+
+  <g transform="translate(1840,250)">
+    <rect x="0" y="0" width="960" height="1120" rx="46" fill="#050505" fill-opacity="0.52" stroke="url(#stroke)" stroke-width="3" filter="url(#shadow)"/>
+    <rect x="54" y="54" width="852" height="1012" rx="36" fill="#0a0b0d" stroke="#ffffff" stroke-opacity="0.08"/>
+
+    <rect x="94" y="94" width="220" height="38" rx="19" fill="#34d399" fill-opacity="0.12" stroke="#34d399" stroke-opacity="0.2"/>
+    <text x="122" y="119" class="mono green" font-size="19" letter-spacing="4">SHOWCASE</text>
+
+    <text x="94" y="210" class="serif white" font-size="74" font-weight="700">Design. Build. Ship.</text>
+    <text x="94" y="268" class="sans muted" font-size="28">Satu workspace untuk menata visi produk sebelum coding dimulai.</text>
+
+    <rect x="94" y="340" width="362" height="250" rx="28" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+    <rect x="488" y="340" width="324" height="112" rx="24" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+    <rect x="488" y="478" width="324" height="112" rx="24" fill="#34d399" fill-opacity="0.07" stroke="#34d399" stroke-opacity="0.18"/>
+
+    <circle cx="142" cy="394" r="23" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-opacity="0.28"/>
+    <path d="M130 394 h24 M142 382 v24" stroke="#62f1bf" stroke-width="3" stroke-linecap="round"/>
+    <text x="184" y="404" class="sans white" font-size="38" font-weight="600">PRD Generator</text>
+    <text x="126" y="466" class="sans soft" font-size="25">
+      <tspan x="126" dy="0">Mengubah deskripsi sederhana</tspan>
+      <tspan x="126" dy="40">menjadi dokumen kebutuhan</tspan>
+      <tspan x="126" dy="40">yang rapi dan lebih mudah</tspan>
+      <tspan x="126" dy="40">dipahami lintas tim.</tspan>
+    </text>
+
+    <text x="528" y="396" class="sans white" font-size="34" font-weight="600">Projects</text>
+    <text x="528" y="438" class="serif white" font-size="72" font-weight="700">12</text>
+    <text x="528" y="536" class="sans white" font-size="34" font-weight="600">Planner aktif</text>
+    <text x="528" y="572" class="sans soft" font-size="23">Roadmap teknis per fase</text>
+
+    <rect x="94" y="654" width="718" height="154" rx="28" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="126" y="708" class="mono muted" font-size="19" letter-spacing="4">AMVIBE DALAM BAHASA SEDERHANA</text>
+    <text x="126" y="758" class="sans soft" font-size="27">
+      <tspan x="126" dy="0">Bayangkan Anda punya ide, tetapi belum tahu bentuk produk,</tspan>
+      <tspan x="126" dy="40">prioritas kerja, dan cara menjelaskannya ke tim.</tspan>
+    </text>
+
+    <text x="94" y="902" class="mono muted" font-size="20" letter-spacing="4">YANG MEMBUAT AMVIBE MENARIK</text>
+    <g transform="translate(94,948)">
+      <rect x="0" y="0" width="352" height="84" rx="22" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="30" y="52" class="sans white" font-size="28" font-weight="600">Ramah untuk non teknis</text>
+    </g>
+    <g transform="translate(460,948)">
+      <rect x="0" y="0" width="352" height="84" rx="22" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="30" y="52" class="sans white" font-size="28" font-weight="600">Satu alur kerja utuh</text>
+    </g>
+  </g>
+
+  <g transform="translate(170,1460)">
+    <text x="0" y="0" class="mono muted" font-size="24" letter-spacing="7">SHOWCASE AMVIBE</text>
+    <text x="0" y="92" class="serif white" font-size="92" font-weight="700">Tiga output utama</text>
+    <text x="0" y="158" class="sans soft" font-size="35">Output yang membantu ide lebih siap dipahami dan lebih siap dibangun.</text>
+
+    <g transform="translate(0,250)">
+      <rect x="0" y="0" width="828" height="700" rx="38" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3" filter="url(#shadow)"/>
+      <rect x="54" y="52" width="96" height="96" rx="24" fill="#34d399" fill-opacity="0.10" stroke="#34d399" stroke-opacity="0.22"/>
+      <path d="M78 78 h48 v58 h-48 z M88 94 h28 M88 110 h20 M88 126 h30" stroke="#62f1bf" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <text x="54" y="220" class="serif white" font-size="72" font-weight="700">PRD Generator</text>
+      <text x="54" y="284" class="sans soft" font-size="30">
+        <tspan x="54" dy="0">Membantu ide produk menjadi dokumen yang</tspan>
+        <tspan x="54" dy="42">lebih runtut, lebih mudah dijelaskan, dan</tspan>
+        <tspan x="54" dy="42">lebih siap diteruskan ke tim.</tspan>
+      </text>
+      <text x="76" y="432" class="sans white" font-size="28">
+        <tspan x="76" dy="0">- masalah yang ingin diselesaikan</tspan>
+        <tspan x="76" dy="42">- siapa pengguna utamanya</tspan>
+        <tspan x="76" dy="42">- fitur inti yang perlu dibuat</tspan>
+        <tspan x="76" dy="42">- prioritas bisnis dan arah produk</tspan>
+      </text>
+      <rect x="54" y="588" width="720" height="74" rx="20" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="84" y="634" class="mono green" font-size="19" letter-spacing="4">COCOK UNTUK ORANG YANG BARU MULAI</text>
+    </g>
+
+    <g transform="translate(892,250)">
+      <rect x="0" y="0" width="828" height="700" rx="38" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3" filter="url(#shadow)"/>
+      <rect x="54" y="52" width="96" height="96" rx="24" fill="#8b5cf6" fill-opacity="0.10" stroke="#8b5cf6" stroke-opacity="0.22"/>
+      <path d="M76 126 L100 92 L124 110 L148 78" stroke="#c4b5fd" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="76" cy="126" r="5" fill="#c4b5fd"/>
+      <circle cx="100" cy="92" r="5" fill="#c4b5fd"/>
+      <circle cx="124" cy="110" r="5" fill="#c4b5fd"/>
+      <circle cx="148" cy="78" r="5" fill="#c4b5fd"/>
+      <text x="54" y="220" class="serif white" font-size="72" font-weight="700">Next Step Planner</text>
+      <text x="54" y="284" class="sans soft" font-size="30">
+        <tspan x="54" dy="0">Memecah pekerjaan besar menjadi langkah</tspan>
+        <tspan x="54" dy="42">yang lebih realistis, terukur, dan mudah</tspan>
+        <tspan x="54" dy="42">diikuti bersama tim.</tspan>
+      </text>
+      <text x="76" y="432" class="sans white" font-size="28">
+        <tspan x="76" dy="0">- fase persiapan dan setup</tspan>
+        <tspan x="76" dy="42">- peta fitur dan prioritas pengerjaan</tspan>
+        <tspan x="76" dy="42">- urutan kerja yang lebih realistis</tspan>
+        <tspan x="76" dy="42">- arah kolaborasi produk dan engineering</tspan>
+      </text>
+      <rect x="54" y="588" width="720" height="74" rx="20" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="84" y="634" class="mono" font-size="19" letter-spacing="4" fill="#d7ccff">MEMBUAT PROSES TERASA LEBIH JELAS</text>
+    </g>
+
+    <g transform="translate(1784,250)">
+      <rect x="0" y="0" width="1006" height="700" rx="38" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3" filter="url(#shadow)"/>
+      <rect x="54" y="52" width="96" height="96" rx="24" fill="#f59e0b" fill-opacity="0.10" stroke="#f59e0b" stroke-opacity="0.22"/>
+      <path d="M82 128 L122 88 L122 148 M122 88 L154 120" stroke="#fcd34d" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="54" y="220" class="serif white" font-size="72" font-weight="700">Coding Prompts</text>
+      <text x="54" y="284" class="sans soft" font-size="30">
+        <tspan x="54" dy="0">Menghasilkan instruksi yang lebih siap dipakai</tspan>
+        <tspan x="54" dy="42">developer atau AI coding tools seperti Cursor,</tspan>
+        <tspan x="54" dy="42">Claude, dan Codex.</tspan>
+      </text>
+      <text x="76" y="432" class="sans white" font-size="28">
+        <tspan x="76" dy="0">- konteks kerja lebih lengkap</tspan>
+        <tspan x="76" dy="42">- tugas lebih fokus dan spesifik</tspan>
+        <tspan x="76" dy="42">- lebih sedikit bolak balik klarifikasi</tspan>
+        <tspan x="76" dy="42">- transisi ide ke eksekusi lebih cepat</tspan>
+      </text>
+      <rect x="54" y="588" width="898" height="74" rx="20" fill="#ffffff" fill-opacity="0.03" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="84" y="634" class="mono" font-size="19" letter-spacing="4" fill="#f7d89a">SIAP DITERUSKAN MENUJU EKSEKUSI</text>
+    </g>
+  </g>
+
+  <g transform="translate(170,2595)">
+    <text x="0" y="0" class="mono muted" font-size="24" letter-spacing="7">KEUNGGULAN AMVIBE</text>
+    <text x="0" y="92" class="serif white" font-size="92" font-weight="700">Mengapa Amvibe terasa relevan</text>
+    <line x1="0" y1="142" x2="2620" y2="142" stroke="url(#lineGlow)" stroke-width="4"/>
+
+    <g transform="translate(0,228)">
+      <rect x="0" y="0" width="1260" height="250" rx="34" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3"/>
+      <text x="48" y="72" class="mono green" font-size="20" letter-spacing="5">01</text>
+      <text x="48" y="148" class="serif white" font-size="58" font-weight="700">Ramah untuk awam</text>
+      <text x="48" y="208" class="sans soft" font-size="30">Anda tidak harus ahli coding untuk mulai merapikan ide produk dengan lebih matang.</text>
+    </g>
+
+    <g transform="translate(1360,228)">
+      <rect x="0" y="0" width="1260" height="250" rx="34" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3"/>
+      <text x="48" y="72" class="mono green" font-size="20" letter-spacing="5">02</text>
+      <text x="48" y="148" class="serif white" font-size="58" font-weight="700">Satu alur utuh</text>
+      <text x="48" y="208" class="sans soft" font-size="30">Ide, dokumen, roadmap, dan prompt eksekusi hadir dalam satu pengalaman kerja.</text>
+    </g>
+
+    <g transform="translate(0,538)">
+      <rect x="0" y="0" width="1260" height="250" rx="34" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3"/>
+      <text x="48" y="72" class="mono green" font-size="20" letter-spacing="5">03</text>
+      <text x="48" y="148" class="serif white" font-size="58" font-weight="700">Lebih cepat dipahami</text>
+      <text x="48" y="208" class="sans soft" font-size="30">Struktur yang rapi membantu tim non teknis dan teknis bertemu di bahasa yang sama.</text>
+    </g>
+
+    <g transform="translate(1360,538)">
+      <rect x="0" y="0" width="1260" height="250" rx="34" fill="#060606" fill-opacity="0.56" stroke="url(#stroke)" stroke-width="3"/>
+      <text x="48" y="72" class="mono green" font-size="20" letter-spacing="5">04</text>
+      <text x="48" y="148" class="serif white" font-size="58" font-weight="700">Tampilan fokus</text>
+      <text x="48" y="208" class="sans soft" font-size="30">Visualnya dibuat premium, minimal, dan tidak membuat informasi penting tenggelam.</text>
+    </g>
+  </g>
+
+  <g transform="translate(170,3505)">
+    <text x="0" y="0" class="mono muted" font-size="24" letter-spacing="7">ALUR AMVIBE</text>
+    <text x="0" y="92" class="serif white" font-size="92" font-weight="700">Alur sederhana, hasil lebih siap</text>
+    <path d="M170 408 C430 322 560 544 820 470 C1080 396 1210 286 1480 338 C1750 390 1880 564 2140 506 C2360 458 2480 374 2630 322" fill="none" stroke="#34d399" stroke-opacity="0.38" stroke-width="6"/>
+
+    <g transform="translate(0,230)">
+      <circle cx="94" cy="94" r="72" fill="#34d399" fill-opacity="0.10" stroke="#34d399" stroke-opacity="0.34" stroke-width="4"/>
+      <text x="94" y="108" text-anchor="middle" class="mono green" font-size="38" font-weight="700">01</text>
+      <text x="0" y="224" class="serif white" font-size="54" font-weight="700">Ceritakan ide</text>
+      <text x="0" y="282" class="sans soft" font-size="27">
+        <tspan x="0" dy="0">Mulai dari gambaran bisnis,</tspan>
+        <tspan x="0" dy="38">masalah, atau ide aplikasi</tspan>
+        <tspan x="0" dy="38">yang masih mentah.</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(700,420)">
+      <circle cx="94" cy="94" r="72" fill="#34d399" fill-opacity="0.10" stroke="#34d399" stroke-opacity="0.34" stroke-width="4"/>
+      <text x="94" y="108" text-anchor="middle" class="mono green" font-size="38" font-weight="700">02</text>
+      <text x="0" y="224" class="serif white" font-size="54" font-weight="700">Susun PRD</text>
+      <text x="0" y="282" class="sans soft" font-size="27">
+        <tspan x="0" dy="0">Amvibe merapikan visi</tspan>
+        <tspan x="0" dy="38">menjadi dokumen kebutuhan</tspan>
+        <tspan x="0" dy="38">produk yang lebih jelas.</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(1380,280)">
+      <circle cx="94" cy="94" r="72" fill="#34d399" fill-opacity="0.10" stroke="#34d399" stroke-opacity="0.34" stroke-width="4"/>
+      <text x="94" y="108" text-anchor="middle" class="mono green" font-size="38" font-weight="700">03</text>
+      <text x="0" y="224" class="serif white" font-size="54" font-weight="700">Pecah jadi langkah</text>
+      <text x="0" y="282" class="sans soft" font-size="27">
+        <tspan x="0" dy="0">Planner memetakan tahapan</tspan>
+        <tspan x="0" dy="38">kerja agar tim tahu prioritas</tspan>
+        <tspan x="0" dy="38">yang perlu didahulukan.</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(2080,170)">
+      <circle cx="94" cy="94" r="72" fill="#34d399" fill-opacity="0.10" stroke="#34d399" stroke-opacity="0.34" stroke-width="4"/>
+      <text x="94" y="108" text-anchor="middle" class="mono green" font-size="38" font-weight="700">04</text>
+      <text x="0" y="224" class="serif white" font-size="54" font-weight="700">Eksekusi lebih siap</text>
+      <text x="0" y="282" class="sans soft" font-size="27">
+        <tspan x="0" dy="0">Prompt siap dipakai untuk</tspan>
+        <tspan x="0" dy="38">developer atau AI coding</tspan>
+        <tspan x="0" dy="38">tools secara lebih terarah.</tspan>
+      </text>
+    </g>
+  </g>
+
+  <g transform="translate(170,3990)">
+    <rect x="0" y="0" width="2630" height="150" rx="34" fill="#050505" fill-opacity="0.6" stroke="url(#stroke)" stroke-width="3"/>
+    <text x="50" y="62" class="mono green" font-size="22" letter-spacing="5">AMVIBE ENTERPRISE</text>
+    <text x="50" y="112" class="sans white" font-size="38" font-weight="600">Bantu ide Anda terdengar lebih jelas, lebih rapi, dan lebih siap dibangun.</text>
+    <text x="2570" y="62" text-anchor="end" class="mono muted" font-size="20" letter-spacing="4">SHOWCASE  |  KEUNGGULAN  |  ALUR</text>
+    <text x="2570" y="112" text-anchor="end" class="sans soft" font-size="26">PRD Generator  |  Next Step Planner  |  Coding Prompts</text>
+  </g>
+</svg>

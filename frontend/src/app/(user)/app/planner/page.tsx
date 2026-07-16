@@ -1,11 +1,12 @@
 'use client'
 
-import { useRef, useEffect, useState, useMemo } from 'react'
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Send, Sparkles, StopCircle, Download, CheckCircle2, 
-  Circle, ChevronRight, Cpu, Zap, Shield, Bot, 
-  Terminal, Code2, Layers, Rocket, ArrowRight, History, Clock, Atom
+  Sparkles, StopCircle, Download,
+  Cpu, Bot, 
+  Terminal, Code2, Layers, Rocket, ArrowRight, History, Clock, Atom,
+  AlertTriangle, CheckCircle2, Loader2, XCircle
 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react'
 import { PRDViewer } from '@/components/ui/PRDViewer'
@@ -135,10 +136,42 @@ export default function PlannerPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [plannerHistory, setPlannerHistory] = useState<PlannerVersion[]>([])
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<PlannerVersion | null>(null)
+  const [historyToDelete, setHistoryToDelete] = useState<PlannerVersion | null>(null)
   const [isLoadingProjects, setIsLoadingProjects] = useState(true)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [isDeletingHistory, setIsDeletingHistory] = useState(false)
   const [step, setStep] = useState<'select-project' | 'select-agent' | 'history' | 'generating' | 'viewing-history'>('select-project')
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  const showToast = useCallback((type: 'success' | 'error', message: string) => {
+    setToast({ type, message })
+    window.setTimeout(() => {
+      setToast((current) => (current?.message === message ? null : current))
+    }, 3500)
+  }, [])
+
+  const fetchPlannerHistory = useCallback(async (projectId: string) => {
+    setIsLoadingHistory(true)
+    try {
+      const res = await fetch(`/api/planner/history?projectId=${projectId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setPlannerHistory(data)
+      } else {
+        setPlannerHistory([])
+      }
+    } catch {
+      setPlannerHistory([])
+    }
+    setIsLoadingHistory(false)
+  }, [])
+
+  const handleSelectProject = useCallback(async (project: Project) => {
+    setSelectedProject(project)
+    setStep('history')
+    await fetchPlannerHistory(project.id)
+  }, [fetchPlannerHistory])
 
   // Fetch user's projects from Supabase
   useEffect(() => {
@@ -151,50 +184,28 @@ export default function PlannerPage() {
 
       if (data && !error) {
         setProjects(data)
-        
-        // Auto-select if ?view=id is present in URL
+
         const params = new URLSearchParams(window.location.search)
         const viewId = params.get('view')
         if (viewId) {
-          const proj = data.find((p: any) => p.id === viewId)
+          const proj = data.find((project) => project.id === viewId)
           if (proj) {
-            handleSelectProject(proj)
+            await handleSelectProject(proj)
           }
         }
       }
       setIsLoadingProjects(false)
     }
-    fetchProjects()
-  }, [])
 
-  const fetchPlannerHistory = async (projectId: string) => {
-    setIsLoadingHistory(true)
-    try {
-      const res = await fetch(`/api/planner/history?projectId=${projectId}`)
-      if (res.ok) {
-        const data = await res.json()
-        setPlannerHistory(data)
-      } else {
-        setPlannerHistory([])
-      }
-    } catch (e) {
-      setPlannerHistory([])
-    }
-    setIsLoadingHistory(false)
-  }
-
-  const handleSelectProject = async (project: Project) => {
-    setSelectedProject(project)
-    setStep('history')
-    await fetchPlannerHistory(project.id)
-  }
+    void fetchProjects()
+  }, [handleSelectProject])
 
   const { completion, isLoading, stop, complete } = useCompletion({
     api: '/api/planner',
     streamProtocol: 'text',
     onError: (error) => {
       console.error('Planner error:', error)
-      alert(`Error: ${error.message}`)
+      showToast('error', `Planner error: ${error.message}`)
     },
     onFinish: () => {
       // Refresh history after generating
@@ -234,7 +245,7 @@ export default function PlannerPage() {
       .single()
 
     if (prdError || !prdData) {
-      alert('Could not load PRD content for this project. Please generate a PRD first.')
+      showToast('error', 'Could not load PRD content for this project. Please generate a PRD first.')
       setStep('select-agent')
       return
     }
@@ -260,12 +271,102 @@ export default function PlannerPage() {
     URL.revokeObjectURL(url)
   }
 
+  const handleDeleteHistory = async () => {
+    if (!historyToDelete) return
+
+    setIsDeletingHistory(true)
+    try {
+      const res = await fetch(`/api/planner/history?id=${historyToDelete.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        showToast('error', 'Failed to delete planner history.')
+        return
+      }
+
+      showToast('success', 'Planner history deleted.')
+      if (selectedProject) {
+        await fetchPlannerHistory(selectedProject.id)
+      }
+    } catch {
+      showToast('error', 'Error deleting planner history.')
+    } finally {
+      setIsDeletingHistory(false)
+      setHistoryToDelete(null)
+    }
+  }
+
   const selectedAgentData = AGENTS.find(a => a.id === selectedAgent)
 
   return (
     <div className="flex flex-col h-screen w-full relative animate-fade-in bg-transparent">
       <NeuralMesh />
       <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay z-0" />
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key={toast.type + toast.message}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 right-6 z-[100] flex items-center space-x-3 px-5 py-3 border text-[11px] font-mono uppercase tracking-widest shadow-2xl ${
+              toast.type === 'success'
+                ? 'bg-[#020202] border-[#34d399]/50 text-[#34d399] shadow-[0_0_20px_rgba(52,211,153,0.2)]'
+                : 'bg-[#020202] border-red-500/50 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+            }`}
+          >
+            {toast.type === 'success' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+            <span>{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {historyToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => !isDeletingHistory && setHistoryToDelete(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(event) => event.stopPropagation()}
+              className="relative mx-4 w-full max-w-md border border-red-500/50 bg-[#050505] p-8 shadow-[0_0_40px_rgba(239,68,68,0.2)]"
+            >
+              <div className="absolute top-0 left-0 h-2 w-2 border-t border-l border-red-500" />
+              <div className="absolute right-0 bottom-0 h-2 w-2 border-r border-b border-red-500" />
+              <AlertTriangle className="mb-4 text-red-400" size={24} />
+              <p className="mb-2 text-[11px] font-mono uppercase tracking-widest text-red-400">Delete history</p>
+              <h3 className="mb-2 text-xl font-bold tracking-tight text-[#ededed]">Remove this saved plan?</h3>
+              <p className="mb-6 text-[12px] font-mono leading-relaxed text-[#888]">
+                This removes the selected planner history entry from the project timeline.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setHistoryToDelete(null)}
+                  disabled={isDeletingHistory}
+                  className="flex-1 border border-white/10 py-3 text-[11px] font-mono uppercase tracking-widest text-[#888] transition-all hover:border-white/20 hover:text-white disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteHistory}
+                  disabled={isDeletingHistory}
+                  className="flex flex-1 items-center justify-center space-x-2 border border-red-400 bg-red-600 py-3 text-[11px] font-mono uppercase tracking-widest text-white transition-all hover:bg-red-500 disabled:opacity-50"
+                >
+                  {isDeletingHistory ? <Loader2 size={14} className="animate-spin" /> : null}
+                  <span>{isDeletingHistory ? 'Deleting...' : 'Delete'}</span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="flex-1 overflow-y-auto px-8 no-scrollbar relative z-10">
         <div className="max-w-5xl mx-auto pt-10 pb-8">
@@ -278,9 +379,7 @@ export default function PlannerPage() {
             </div>
             <h1 className="text-4xl font-medium tracking-tight text-[#ededed] mb-3 flex items-center space-x-3">
               <span>Next Step</span>
-              <span className="text-[#34d399] drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
-                <GlitchText text="Planner" speed={0.8} />
-              </span>
+              <span className="text-[#34d399] drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">Planner</span>
             </h1>
             <p className="text-[#888] max-w-2xl text-[15px] leading-relaxed">
               Transform your PRD into an actionable, step-by-step implementation plan optimized for your favorite AI coding agent.
@@ -289,7 +388,7 @@ export default function PlannerPage() {
 
           {/* Step Indicator (Terminal Sequence) */}
           {step !== 'generating' && step !== 'viewing-history' && (
-            <div className="flex items-center space-x-4 mb-10 font-mono text-[11px] tracking-[0.2em] uppercase max-w-2xl">
+            <div className="mb-10 flex max-w-2xl flex-col gap-4 font-mono text-[11px] uppercase tracking-[0.2em] md:flex-row md:items-center md:space-x-4 md:gap-0">
               {/* Step 1 */}
               <button 
                 onClick={() => step !== 'select-project' && setStep('select-project')}
@@ -298,14 +397,14 @@ export default function PlannerPage() {
                 [ 01_SELECT_PROJECT ]
               </button>
               
-              <div className={`flex-1 h-[1px] transition-all duration-500 ${step === 'history' || step === 'select-agent' ? 'bg-gradient-to-r from-[#34d399] to-[#34d399]/20 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-white/[0.05]'}`} />
+              <div className={`h-[1px] w-full transition-all duration-500 md:flex-1 ${step === 'history' || step === 'select-agent' ? 'bg-gradient-to-r from-[#34d399] to-[#34d399]/20 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-white/[0.05]'}`} />
               
               {/* Step 2 */}
               <div className={`flex items-center transition-all duration-300 ${step === 'history' || step === 'select-agent' ? 'text-[#34d399] drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]' : step === 'select-project' ? 'text-[#333]' : 'text-[#555]'}`}>
                 [ 02_CHOOSE_PATH ]
               </div>
               
-              <div className={`flex-1 h-[1px] bg-white/[0.05]`} />
+              <div className="h-[1px] w-full bg-white/[0.05] md:flex-1" />
               
               {/* Step 3 */}
               <div className="flex items-center text-[#333]">
@@ -326,7 +425,7 @@ export default function PlannerPage() {
               >
                 <h2 className="text-xl font-bold text-white mb-4">Select a PRD Project</h2>
                 <p className="text-zinc-500 text-sm mb-6">
-                  Choose which project's PRD you want to transform into an implementation plan.
+                  Choose which project&apos;s PRD you want to transform into an implementation plan.
                 </p>
 
                 {isLoadingProjects ? (
@@ -345,26 +444,26 @@ export default function PlannerPage() {
                       <button
                         key={project.id}
                         onClick={() => handleSelectProject(project)}
-                        className={`group w-full text-left p-6 rounded-[24px] border transition-all duration-300 relative overflow-hidden hover:scale-[1.02] ${
+                        className={`group w-full text-left p-4 md:p-6 rounded-[20px] md:rounded-[24px] border transition-all duration-300 relative overflow-hidden hover:scale-[1.02] ${
                           selectedProject?.id === project.id
                             ? 'bg-[#34d399]/10 border-[#34d399]/40 shadow-[0_0_20px_rgba(52,211,153,0.15)]'
                             : 'bg-[#030303]/40 backdrop-blur-xl border-white/[0.05] hover:border-white/[0.15] hover:bg-white/[0.05]'
                         }`}
                       >
-                        <div className="absolute inset-0 rounded-[24px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
-                        <div className="flex items-center justify-between relative z-10">
-                          <div className="flex items-center space-x-4">
-                            <div className={`h-12 w-12 rounded-xl border flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner ${
+                        <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] pointer-events-none" />
+                        <div className="flex items-center justify-between relative z-10 w-full min-w-0">
+                          <div className="flex items-center space-x-3 md:space-x-4 flex-1 min-w-0 mr-2">
+                            <div className={`h-10 w-10 md:h-12 md:w-12 rounded-xl border flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-inner ${
                               selectedProject?.id === project.id ? 'bg-[#34d399]/20 border-[#34d399]/50' : 'bg-[#111] border-[#222]'
                             }`}>
-                              <Layers className={`${selectedProject?.id === project.id ? 'text-[#34d399]' : 'text-[#888]'}`} size={20} />
+                              <Layers className={`${selectedProject?.id === project.id ? 'text-[#34d399]' : 'text-[#888]'}`} size={18} />
                             </div>
-                            <div>
-                              <h3 className="text-[#ededed] font-medium text-[15px] truncate max-w-[280px] tracking-tight">{project.name}</h3>
-                              <p className="text-[#666] text-[10px] font-mono uppercase tracking-wider mt-1">PRD Object</p>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-[#ededed] font-medium text-[14px] md:text-[15px] truncate tracking-tight">{project.name}</h3>
+                              <p className="text-[#666] text-[10px] font-mono uppercase tracking-wider mt-1 truncate">PRD Object</p>
                             </div>
                           </div>
-                          <ArrowRight size={18} className={`transition-all duration-300 ${selectedProject?.id === project.id ? 'text-[#34d399] translate-x-1' : 'text-[#444] group-hover:text-[#ededed] group-hover:-rotate-45'}`} />
+                          <ArrowRight size={18} className={`shrink-0 transition-all duration-300 ${selectedProject?.id === project.id ? 'text-[#34d399] translate-x-1' : 'text-[#444] group-hover:text-[#ededed] group-hover:-rotate-45'}`} />
                         </div>
                       </button>
                     ))}
@@ -382,19 +481,19 @@ export default function PlannerPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-2xl font-sans font-bold tracking-tight text-[#ededed] mb-1 flex items-center">
-                      <History className="mr-3 text-purple-400 opacity-80" size={24} />
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 space-y-4 md:space-y-0">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <h2 className="text-xl md:text-2xl font-sans font-bold tracking-tight text-[#ededed] mb-1 flex items-center">
+                      <History className="mr-3 text-purple-400 opacity-80 shrink-0" size={24} />
                       Project History
                     </h2>
-                    <p className="text-[#888] font-mono text-[11px] uppercase tracking-widest mt-1">
+                    <p className="text-[#888] font-mono text-[10px] md:text-[11px] uppercase tracking-widest mt-1 truncate">
                       Target_Project: <span className="text-purple-400 font-bold">[{selectedProject?.name}]</span>
                     </p>
                   </div>
                   <button
                     onClick={() => setStep('select-agent')}
-                    className="group relative flex items-center space-x-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 px-6 py-3 text-[11px] font-mono uppercase tracking-widest border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 shadow-[inset_0_0_15px_rgba(168,85,247,0.1)] overflow-hidden"
+                    className="group relative flex items-center justify-center space-x-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 px-6 py-3 text-[11px] font-mono uppercase tracking-widest border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 shadow-[inset_0_0_15px_rgba(168,85,247,0.1)] overflow-hidden shrink-0 w-full md:w-auto"
                   >
                     <div className="absolute inset-0 w-0 bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0 group-hover:w-full transition-all duration-700 ease-out translate-x-[-100%] group-hover:translate-x-[100%]" />
                     <Sparkles size={14} className="group-hover:animate-pulse text-purple-400" />
@@ -437,7 +536,7 @@ export default function PlannerPage() {
                   </div>
                 ) : (
                   <div className="flex overflow-x-auto gap-4 pb-6 custom-scrollbar snap-x w-full">
-                    {plannerHistory.map((history) => {
+                    {plannerHistory.map((history, historyIndex) => {
                       const agentData = AGENTS.find(a => a.id === history.agent_name) || AGENTS[0]
                       const Icon = agentData.icon
                       const date = new Date(history.created_at)
@@ -459,7 +558,7 @@ export default function PlannerPage() {
                                 key={i}
                                 className="h-full bg-white w-1"
                                 animate={{ height: ['20%', '100%', '40%', '80%', '20%'] }}
-                                transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: 'linear' }}
+                                transition={{ duration: 2 + i * 0.15, repeat: Infinity, ease: 'linear' }}
                               />
                             ))}
                           </div>
@@ -489,7 +588,7 @@ export default function PlannerPage() {
                             <div className="mt-auto w-full">
                               <p className="text-[#555] text-[9px] font-mono uppercase tracking-[0.3em] mb-1.5">Agent_Identity</p>
                               <h3 className="text-[#ededed] font-medium text-xl flex items-center tracking-tight mb-4 w-full">
-                                <GlitchText text={agentData.name} delay={Math.random() * 1000} speed={0.5} />
+                                <GlitchText text={agentData.name} delay={historyIndex * 120} speed={0.5} />
                               </h3>
                               <div className="flex items-center space-x-2 text-[#888] text-[9px] font-mono tracking-widest bg-white/[0.02] px-2 py-1.5 border border-white/[0.05] w-full overflow-hidden">
                                 <Clock size={10} className="text-purple-400/70 shrink-0" />
@@ -499,20 +598,9 @@ export default function PlannerPage() {
                           </button>
                           
                           <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (confirm('Are you sure you want to delete this planner history?')) {
-                                try {
-                                  const res = await fetch(`/api/planner/history?id=${history.id}`, { method: 'DELETE' });
-                                  if (res.ok) {
-                                    if (selectedProject) fetchPlannerHistory(selectedProject.id);
-                                  } else {
-                                    alert('Failed to delete planner history.');
-                                  }
-                                } catch (err) {
-                                  alert('Error deleting planner history.');
-                                }
-                              }
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setHistoryToDelete(history)
                             }}
                             className="absolute right-4 top-4 p-2 text-[#444] hover:text-red-400 bg-[#000]/50 hover:bg-red-400/10 border border-transparent hover:border-red-400/30 transition-all z-30 opacity-0 group-hover:opacity-100 backdrop-blur-md"
                             title="Delete Record"
@@ -642,7 +730,7 @@ export default function PlannerPage() {
                             <div className="truncate">
                               <h2 className="text-xl font-bold text-white truncate">Saved Implementation Plan</h2>
                               <p className="text-zinc-500 text-xs truncate">
-                                {selectedProject?.name} → {agentData.name} ({new Date(selectedHistoryItem.created_at).toLocaleDateString()})
+                                {selectedProject?.name} {'->'} {agentData.name} ({new Date(selectedHistoryItem.created_at).toLocaleDateString()})
                               </p>
                             </div>
                           </>
@@ -680,7 +768,7 @@ export default function PlannerPage() {
                       onClick={() => setStep('history')}
                       className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors underline mb-2 block"
                     >
-                      ← Back to History
+                      Back to History
                     </button>
                     <div className="flex items-center space-x-3 mb-2">
                       {selectedAgentData && (
@@ -691,7 +779,7 @@ export default function PlannerPage() {
                       <div>
                         <h2 className="text-xl font-bold text-white">Generating Plan...</h2>
                         <p className="text-zinc-500 text-xs">
-                          {selectedProject?.name} → {selectedAgentData?.name}
+                          {selectedProject?.name} {'->'} {selectedAgentData?.name}
                         </p>
                       </div>
                     </div>
@@ -730,7 +818,7 @@ export default function PlannerPage() {
                               ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20 animate-pulse'
                               : 'bg-zinc-900 text-zinc-600 border border-zinc-800'
                         }`}>
-                          <span>{phase.icon}</span>
+                          <span>P{phase.phase}</span>
                           <span className="hidden lg:inline">{phase.name}</span>
                         </div>
                         {index < PHASES.length - 1 && (

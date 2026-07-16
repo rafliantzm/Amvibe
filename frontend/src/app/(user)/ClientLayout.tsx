@@ -1,18 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import Link from 'next/link'
-import { PlusCircle, Search, ShieldAlert, LogOut, MonitorSmartphone } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { PlusCircle, Search, ShieldAlert, MonitorSmartphone } from 'lucide-react'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
-import { CommandPalette } from '@/components/ui/CommandPalette'
 import { Tooltip } from '@/components/ui/Tooltip'
-import { CursorAura } from '@/components/ui/CursorAura'
-import { DeveloperConsole } from '@/components/ui/DeveloperConsole'
 import { MagneticButton } from '@/components/ui/MagneticButton'
 import { FocusProvider } from '@/components/ui/FocusProvider'
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
+
+const CursorAura = dynamic(
+  () => import('@/components/ui/CursorAura').then((module) => module.CursorAura),
+  { ssr: false }
+)
+const DeveloperConsole = dynamic(
+  () => import('@/components/ui/DeveloperConsole').then((module) => module.DeveloperConsole),
+  { ssr: false }
+)
+const CommandPalette = dynamic(
+  () => import('@/components/ui/CommandPalette').then((module) => module.CommandPalette),
+  { ssr: false }
+)
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -23,27 +34,68 @@ interface ClientLayoutProps {
     commandLabel: string;
     commandDesc: string;
   } | null;
-  projects?: any[]
-  planners?: any[]
+  projects?: ProjectSummary[]
+  planners?: PlannerSummary[]
 }
 
-export default function ClientLayout({ children, userEmail, isAdmin, adminConfig, projects = [], planners = [] }: ClientLayoutProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+interface ProjectSummary {
+  id: string
+  name: string
+}
+
+interface PlannerSummary {
+  id: string
+  project_id: string
+  agent_name: string
+}
+
+export default function ClientLayout({ children, userEmail, isAdmin: _isAdmin, adminConfig, projects = [], planners = [] }: ClientLayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
+  const hasMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const sidebarSearchQuery = pathname === '/app/search' ? (searchParams.get('q') ?? '') : ''
+  const hasAdminAccess = _isAdmin && !!adminConfig
 
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false)
-    }
+    const timeout = window.setTimeout(() => {
+      setIsSidebarOpen(window.innerWidth >= 768)
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
   }, [])
 
   // Auto close on mobile when navigating
   useEffect(() => {
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false)
-    }
+    const timeout = window.setTimeout(() => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false)
+      }
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
   }, [pathname])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const shouldLockOverlay = isSidebarOpen && window.innerWidth < 768
+
+    document.body.classList.toggle('app-overlay-open', shouldLockOverlay)
+    document.documentElement.classList.toggle('app-overlay-open', shouldLockOverlay)
+
+    return () => {
+      document.body.classList.remove('app-overlay-open')
+      document.documentElement.classList.remove('app-overlay-open')
+    }
+  }, [isSidebarOpen])
 
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -54,14 +106,14 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
   const handleDeleteConfirm = async () => {
     if (deleteModal.type === 'project') {
       try {
-        const res = await fetch(`/api/project?id=${deleteModal.id}`, { method: 'DELETE' });
-        if (res.ok) window.location.href = '/app';
-      } catch (err) {}
+        const res = await fetch(`/api/project?id=${deleteModal.id}`, { method: 'DELETE' })
+        if (res.ok) window.location.href = '/app'
+      } catch {}
     } else {
       try {
-        const res = await fetch(`/api/planner/history?id=${deleteModal.id}`, { method: 'DELETE' });
-        if (res.ok) window.location.reload();
-      } catch (err) {}
+        const res = await fetch(`/api/planner/history?id=${deleteModal.id}`, { method: 'DELETE' })
+        if (res.ok) window.location.reload()
+      } catch {}
     }
     setDeleteModal(prev => ({ ...prev, isOpen: false }))
   }
@@ -72,9 +124,13 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
   return (
     <FocusProvider>
       <div className={`flex h-screen overflow-hidden bg-transparent relative z-10 ${isCompact ? 'text-[12px]' : 'text-[14px]'}`}>
-      <CursorAura />
-      <DeveloperConsole />
-      <CommandPalette adminConfig={adminConfig} />
+      {hasMounted && (
+        <>
+          <CursorAura />
+          <DeveloperConsole />
+          <CommandPalette adminConfig={adminConfig} />
+        </>
+      )}
       
       {/* Liquid Background Orb for Refraction */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#34d399]/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
@@ -83,7 +139,7 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 overscroll-contain touch-none"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -92,7 +148,7 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
       <div className={`
         fixed md:relative top-0 left-0 z-40 h-full
         py-4 pl-4 pr-4 md:pr-0 
-        transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0
+        transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0 transform-gpu will-change-transform
         ${isSidebarOpen 
           ? 'translate-x-0 w-[280px]' 
           : '-translate-x-full md:translate-x-0 w-[280px] md:w-0 md:opacity-0 md:overflow-hidden md:!p-0'
@@ -165,18 +221,26 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
             </Link>
             
             <div className="pt-4 pb-2">
-              <Link href="/app/search" className="flex items-center justify-between px-3 py-2 text-[12px] rounded-lg bg-white/[0.02] border border-white/[0.04] text-[#888] hover:bg-white/[0.04] hover:text-[#ededed] transition-colors group">
-                <div className="flex items-center">
+              <form action="/app/search" method="GET" className="flex items-center justify-between gap-2 rounded-lg border border-white/[0.04] bg-white/[0.02] px-3 py-2 text-[12px] text-[#888] transition-colors group hover:bg-white/[0.04]">
+                <div className="flex min-w-0 flex-1 items-center">
                   <Search className="mr-2 h-3.5 w-3.5 shrink-0" />
-                  <span>Search...</span>
+                  <input
+                    type="text"
+                    name="q"
+                    defaultValue={sidebarSearchQuery}
+                    placeholder="Search..."
+                    className="w-full bg-transparent text-[12px] text-[#ededed] outline-none placeholder:text-[#888]"
+                  />
                 </div>
-                <span className="text-[9px] tracking-widest font-mono text-[#555] bg-white/[0.05] px-1.5 py-0.5 rounded">Ctrl+K</span>
-              </Link>
+                <button type="submit" className="rounded bg-white/[0.05] px-1.5 py-0.5 text-[9px] font-mono tracking-widest text-[#555] transition-colors group-hover:text-[#888]">
+                  Enter
+                </button>
+              </form>
             </div>
         </nav>
 
         {/* Previous Documents List */}
-        <div className="flex-1 overflow-y-auto px-4 mt-8 min-w-[240px]">
+        <div className="flex-1 overflow-y-auto px-4 mt-8 min-w-[240px] app-scroll-surface">
           <div className="px-2 mb-3 text-[10px] font-bold text-[#555] uppercase tracking-[0.15em]">
             Recent PRDs
           </div>
@@ -292,7 +356,7 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
             </button>
           </div>
 
-          {adminConfig && (
+          {hasAdminAccess && adminConfig && (
             <Link href="/admin" className="flex items-center px-3 py-2.5 mb-2 text-[13px] font-medium rounded-xl text-[#888] hover:text-[#ededed] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.04]">
               <ShieldAlert className="mr-3 h-4 w-4 shrink-0" />
               {adminConfig.menuLabel}
@@ -319,28 +383,35 @@ export default function ClientLayout({ children, userEmail, isAdmin, adminConfig
       </div>
 
       {/* Main Content */}
-        <div className="flex-1 overflow-y-auto relative bg-transparent z-0 transition-all duration-500">
+        <div className="flex-1 overflow-y-auto relative bg-transparent z-0 transition-all duration-300 app-scroll-surface">
           {!isSidebarOpen && (
-            <button 
+            <div 
+              className="fixed top-0 left-0 w-6 md:w-8 h-full z-50 cursor-pointer group/edge flex items-center"
               onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-4 left-4 z-30 p-2 text-zinc-400 hover:text-zinc-100 transition-colors rounded-md hover:bg-white/5 bg-[#0a0a0a] border border-[#1a1a1a] shadow-lg"
+              title="Open Sidebar"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-              </svg>
-            </button>
+              <div className="w-1.5 group-hover/edge:w-2 h-16 md:h-20 bg-white/20 group-hover/edge:bg-white/40 transition-all duration-200 rounded-r-xl backdrop-blur-md shadow-[2px_0_10px_rgba(0,0,0,0.5)] border-y border-r border-white/10 flex items-center justify-center relative transform-gpu will-change-transform">
+                {/* Subtle visual indicator inside the handle */}
+                <div className="w-[1px] h-6 bg-white/30 rounded-full" />
+                
+                {/* Expand icon appearing on hover/active */}
+                <div className="absolute left-full ml-1 opacity-0 group-hover/edge:opacity-100 md:opacity-0 transition-all duration-300 -translate-x-2 group-hover/edge:translate-x-0 pointer-events-none flex items-center justify-center w-6 h-6 rounded-full bg-black/40 backdrop-blur-md border border-white/10 shadow-lg">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/80">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
           )}
-          <div className="flex-1 overflow-auto relative z-10">
+          <div className="min-h-full overflow-auto relative z-10 app-scroll-surface">
             <AnimatePresence mode="wait">
               <motion.main 
                 key={pathname}
-                initial={{ opacity: 0, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full relative z-10"
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="min-h-full relative z-10"
               >
                 {children}
               </motion.main>

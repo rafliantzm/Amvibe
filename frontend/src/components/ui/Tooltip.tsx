@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 
@@ -14,11 +14,6 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [coords, setCoords] = useState({ x: 0, y: 0 })
   const childRef = useRef<HTMLDivElement>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleMouseEnter = () => {
     if (childRef.current) {
@@ -68,7 +63,7 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
       className="inline-block relative"
     >
       {children}
-      {mounted && createPortal(
+      {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {isVisible && (
             <motion.div

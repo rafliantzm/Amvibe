@@ -22,6 +22,11 @@ html, body {
   min-height: 100vh;
 }
 
+body.app-overlay-open,
+html.app-overlay-open {
+  overflow: hidden;
+}
+
 ::selection {
   background-color: rgba(99, 102, 241, 0.3);
 }
@@ -81,4 +86,11 @@ html, body {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(52, 211, 153, 0.5);
+}
+
+.app-scroll-surface {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
 }

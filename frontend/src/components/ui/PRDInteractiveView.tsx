@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { PRDViewer } from './PRDViewer'
 import { PRDMinimap } from './PRDMinimap'
 import { useCompletion } from '@ai-sdk/react'
-import { Send, Sparkles, StopCircle, ChevronDown, Check, List, Download, Printer, Trash2, ArrowUp } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Sparkles, StopCircle, ChevronDown, Check, List, Download, Printer, Trash2, ArrowUp } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { NeuralMesh } from './NeuralMesh'
 
@@ -32,7 +31,6 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
 
   const activeContent = versions.find(v => v.version_number === activeVersion)?.content || ''
 
-  const router = useRouter()
   const [isTocOpen, setIsTocOpen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -106,7 +104,7 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
     }
   };
 
-  const { completion, input, handleInputChange, handleSubmit, isLoading, stop } = useCompletion({
+  const { completion, input, handleInputChange, handleSubmit, isLoading, stop, setInput } = useCompletion({
     api: '/api/prd',
     streamProtocol: 'text',
     body: {
@@ -138,7 +136,7 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
   // Auto scroll
   useEffect(() => {
     if (isLoading && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+      bottomRef.current.scrollIntoView({ block: 'end' })
     }
   }, [completion, isLoading])
 
@@ -148,14 +146,14 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
       <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay z-0" />
       
       {/* Content Area (Scrollable) */}
-      <div className="flex-1 overflow-y-auto relative pb-10 pt-8 z-10">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden relative pb-10 pt-20 md:pt-8 z-10 w-full min-w-0">
         
         {/* Inner Centered Content Wrapper */}
-        <div className="max-w-5xl mx-auto px-8">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 w-full min-w-0">
           {/* Header (Scrolls away naturally) */}
           <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex-1 w-full">
-              <h1 className="text-[28px] font-bold text-white mb-1 leading-tight tracking-tight">{projectName}</h1>
+            <div className="flex-1 w-full min-w-0">
+              <h1 className="text-[24px] md:text-[28px] font-bold text-white mb-1 leading-tight tracking-tight break-words">{projectName}</h1>
               <p className="text-zinc-500 text-sm truncate max-w-full md:max-w-xl">{activeContent.slice(0, 80).replace(/[#*`\n]/g, '')}...</p>
             </div>
 
@@ -171,7 +169,7 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
                 </button>
                 
                 {isTocOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-72 bg-[#111] border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-72 bg-[#111] border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
                     <div className="p-2 space-y-1 max-h-80 overflow-y-auto custom-scrollbar">
                       {extractHeadings(activeContent).map((h, i) => (
                         <a
@@ -203,7 +201,7 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-[#111] border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
+                  <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-48 bg-[#111] border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50">
                     <div className="p-2 space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
                       {versions.map(v => (
                         <button
@@ -251,7 +249,7 @@ export function PRDInteractiveView({ projectId, projectName, initialVersions }: 
       {/* Chat Input Box (Flex Footer) */}
       <div className="pt-2 pb-4 print:hidden relative z-10">
         <div className="max-w-3xl mx-auto relative">
-          <form onSubmit={handleSubmit} className="relative group">
+          <form onSubmit={(e) => { handleSubmit(e); setInput(''); }} className="relative group">
             <div className="relative flex items-center bg-[#050505] border border-white/[0.08] focus-within:border-white/[0.15] focus-within:bg-[#0a0a0a] rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.4)] p-1.5 pl-5 transition-all duration-300">
               {isLoading ? (
                 <div className="mr-3 flex items-center justify-center shrink-0">

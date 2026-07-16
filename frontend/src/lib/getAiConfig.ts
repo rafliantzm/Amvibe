@@ -22,22 +22,26 @@ export async function getAiConfig(): Promise<AiConfig> {
   }
 
   try {
-    // Use service-role client to bypass RLS
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    const { data, error } = await supabase
-      .from('ai_config')
-      .select('api_key, model_id')
-      .eq('is_active', true)
-      .single()
+    if (serviceRoleKey) {
+      // Only use a service-role client when the key is explicitly configured.
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey
+      )
 
-    if (!error && data && data.api_key && !data.api_key.startsWith('PLACEHOLDER')) {
-      cachedConfig = { apiKey: data.api_key, modelId: data.model_id }
-      cacheTime = now
-      return cachedConfig
+      const { data, error } = await supabase
+        .from('ai_config')
+        .select('api_key, model_id')
+        .eq('is_active', true)
+        .single()
+
+      if (!error && data && data.api_key && !data.api_key.startsWith('PLACEHOLDER')) {
+        cachedConfig = { apiKey: data.api_key, modelId: data.model_id }
+        cacheTime = now
+        return cachedConfig
+      }
     }
   } catch (e) {
     console.warn('[getAiConfig] Failed to fetch from DB, falling back to env:', e)

@@ -1,5 +1,5 @@
 -- AI Config Table
--- Run this in your Supabase SQL Editor
+-- Mirrored from frontend/supabase/migrations/ai_config.sql so Supabase CLI can apply it.
 
 CREATE TABLE IF NOT EXISTS public.ai_config (
   id          uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -11,12 +11,13 @@ CREATE TABLE IF NOT EXISTS public.ai_config (
 );
 
 -- Only one row can be active at a time
-CREATE UNIQUE INDEX IF NOT EXISTS ai_config_single_active ON public.ai_config (is_active) WHERE is_active = true;
+CREATE UNIQUE INDEX IF NOT EXISTS ai_config_single_active
+  ON public.ai_config (is_active)
+  WHERE is_active = true;
 
 -- RLS - service role bypasses RLS; authenticated admins must be explicitly allowed
 ALTER TABLE public.ai_config ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if any
 DROP POLICY IF EXISTS "service_role_all" ON public.ai_config;
 DROP POLICY IF EXISTS "anon_read" ON public.ai_config;
 DROP POLICY IF EXISTS "allow_all" ON public.ai_config;
@@ -42,7 +43,6 @@ CREATE POLICY "admins_manage_ai_config" ON public.ai_config
     )
   );
 
--- Insert a default placeholder row
 INSERT INTO public.ai_config (api_key, model_id, is_active)
 VALUES ('PLACEHOLDER_UPDATE_VIA_ADMIN_PANEL', 'gemini-3.1-flash-lite', true)
 ON CONFLICT DO NOTHING;
