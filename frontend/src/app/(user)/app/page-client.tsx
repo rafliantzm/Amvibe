@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { FileText, Map, Code, ArrowUpRight, Workflow, Database } from 'lucide-react'
 import Link from 'next/link'
 import { motion, type Variants } from 'framer-motion'
@@ -16,6 +17,7 @@ interface UserDashboardClientProps {
 }
 
 export default function UserDashboardClient({ initialStats }: UserDashboardClientProps) {
+  const scrollSurfaceRef = useRef<HTMLDivElement>(null)
 
   const container: Variants = {
     hidden: { opacity: 0 },
@@ -35,14 +37,38 @@ export default function UserDashboardClient({ initialStats }: UserDashboardClien
     }
   }
 
+  const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    const isFormControl = target.closest('input, textarea, select, button')
+
+    if (isFormControl) {
+      return
+    }
+
+    const scroller = scrollSurfaceRef.current
+    if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
+      return
+    }
+
+    event.preventDefault()
+    scroller.scrollTop += event.deltaY
+  }
+
   return (
-    <div className="flex h-full w-full flex-col bg-[#030303] text-[#ededed] font-sans selection:bg-[#fff]/10 overflow-x-hidden">
+    <div
+      className="flex h-full w-full flex-col bg-[#030303] text-[#ededed] font-sans selection:bg-[#fff]/10 overflow-x-hidden"
+      onWheelCapture={handleWheelCapture}
+    >
       {/* Structural Grain & Vignette (Huashu Anti-Slop technique to remove flat colors) */}
       <NeuralMesh />
       <div className="fixed inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.08),rgba(255,255,255,0))]" />
 
-      <div className="relative z-10 flex-1 overflow-y-auto app-scroll-surface" tabIndex={0}>
+      <div
+        ref={scrollSurfaceRef}
+        className="relative z-10 flex-1 overflow-y-auto app-scroll-surface"
+        tabIndex={0}
+      >
         <div className="mx-auto max-w-[1200px] px-6 py-10 md:py-16">
           {/* Header - Typography & Hierarchy */}
           <motion.div
