@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { createAdminClient } from '@/utils/supabase/admin'
 import { createClient } from '@/utils/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -63,7 +64,8 @@ export async function GET(req: Request) {
       return access.error
     }
 
-    const { data, error } = await access.supabase
+    const admin = createAdminClient()
+    const { data, error } = await admin
       .from('planner_versions')
       .select('id, project_id, agent_name, content, created_at')
       .eq('project_id', projectId)
@@ -77,6 +79,48 @@ export async function GET(req: Request) {
     return NextResponse.json((data ?? []) as PlannerHistoryItem[])
   } catch (error) {
     console.error('Error fetching planner history:', error)
+    return new NextResponse('Internal Server Error', { status: 500 })
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const { projectId, agentName, content } = await req.json()
+
+    if (!projectId || !agentName || !content) {
+      return new NextResponse('projectId, agentName, and content are required', { status: 400 })
+    }
+
+    const access = await requireOwnedProject(projectId)
+    if (access.error || !access.user) {
+      return access.error ?? new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    const trimmedContent = String(content).trim()
+    if (!trimmedContent) {
+      return new NextResponse('content must not be empty', { status: 400 })
+    }
+
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from('planner_versions')
+      .insert({
+        project_id: projectId,
+        agent_name: agentName,
+        content: trimmedContent,
+        author_id: access.user.id,
+      })
+      .select('id, project_id, agent_name, content, created_at')
+      .single()
+
+    if (error) {
+      console.error('Error saving planner history to Supabase:', error)
+      return new NextResponse('Internal Server Error', { status: 500 })
+    }
+
+    return NextResponse.json(data as PlannerHistoryItem, { status: 201 })
+  } catch (error) {
+    console.error('Error saving planner history:', error)
     return new NextResponse('Internal Server Error', { status: 500 })
   }
 }
@@ -100,7 +144,8 @@ export async function DELETE(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const { data: planner, error: plannerError } = await supabase
+    const admin = createAdminClient()
+    const { data: planner, error: plannerError } = await admin
       .from('planner_versions')
       .select('id, project_id')
       .eq('id', planId)
@@ -115,7 +160,7 @@ export async function DELETE(req: Request) {
       return access.error
     }
 
-    const { error: deleteError } = await access.supabase
+    const { error: deleteError } = await admin
       .from('planner_versions')
       .delete()
       .eq('id', planId)

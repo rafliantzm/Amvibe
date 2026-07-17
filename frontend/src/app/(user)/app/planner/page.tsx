@@ -167,6 +167,25 @@ export default function PlannerPage() {
     setIsLoadingHistory(false)
   }, [])
 
+  const savePlannerHistory = useCallback(async (projectId: string, agentName: string, content: string) => {
+    const res = await fetch('/api/planner/history', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        agentName,
+        content,
+      }),
+    })
+
+    if (!res.ok) {
+      const message = await res.text()
+      throw new Error(message || 'Failed to save planner history.')
+    }
+  }, [])
+
   const handleSelectProject = useCallback(async (project: Project) => {
     setSelectedProject(project)
     setStep('history')
@@ -207,12 +226,23 @@ export default function PlannerPage() {
       console.error('Planner error:', error)
       showToast('error', `Planner error: ${error.message}`)
     },
-    onFinish: () => {
-      // Refresh history after generating
-      if (selectedProject) {
-        fetchPlannerHistory(selectedProject.id)
+    onFinish: async (_prompt, finalCompletion) => {
+      if (!selectedProject || !selectedAgent) {
+        return
       }
-    }
+
+      try {
+        if (finalCompletion.trim()) {
+          await savePlannerHistory(selectedProject.id, selectedAgent, finalCompletion)
+        }
+
+        await fetchPlannerHistory(selectedProject.id)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to save planner history.'
+        console.error('Planner history save error:', error)
+        showToast('error', message)
+      }
+    },
   })
 
   // Auto scroll during generation

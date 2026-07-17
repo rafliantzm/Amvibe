@@ -178,23 +178,6 @@ Instructions:
       system: systemPrompt,
       prompt: finalPrompt,
       temperature: 0.5,
-      onFinish: async ({ text }) => {
-        try {
-          if (!text.trim()) return
-
-          const { error: saveError } = await supabase.from('planner_versions').insert({
-            project_id: projectId,
-            agent_name: selectedAgent,
-            content: text,
-          })
-
-          if (saveError) {
-            console.error('Failed to save planner version to Supabase:', saveError)
-          }
-        } catch (error) {
-          console.error('Failed to save planner in onFinish:', error)
-        }
-      },
     })
 
     return result.toTextStreamResponse()
