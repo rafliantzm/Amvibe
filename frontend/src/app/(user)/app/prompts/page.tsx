@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Copy, Code2, Layers, Terminal, Sparkles, ChevronRight } from 'lucide-react'
+import { mergePlannerHistory, readPlannerHistoryCache } from '@/lib/planner-history-cache'
 import { createClient } from '@/utils/supabase/client'
 import { GlitchText } from '@/components/ui/GlitchText'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
@@ -31,6 +32,8 @@ interface ExtractedPrompt {
   verification: string
 }
 
+// Legacy parser kept for compatibility with older prompt formats in existing records.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function extractPrompts(markdown: string): ExtractedPrompt[] {
   // Support both old format (### Phase) and new format (### Phase N:)
   const blocks = markdown.split(/(?=### Phase \d)/)
@@ -102,6 +105,68 @@ function extractPrompts(markdown: string): ExtractedPrompt[] {
     } else {
       const oldVerify = block.match(/\*\*Verification:\*\*\s*`([^`]+)`/)
       if (oldVerify) verification = oldVerify[1].trim()
+    }
+
+    if (prompt || tasks.length > 0) {
+      parsed.push({ phaseName, objective, tasks, prompt, files, acceptanceCriteria, verification })
+    }
+  }
+
+  return parsed
+}
+
+function extractPromptsRobust(markdown: string): ExtractedPrompt[] {
+  const blocks = markdown.split(/(?=### Phase \d)/)
+  const parsed: ExtractedPrompt[] = []
+
+  for (const block of blocks) {
+    if (!block.trim().startsWith('### Phase')) continue
+
+    const lines = block.split('\n')
+    const phaseName = lines[0].replace('### ', '').trim()
+    const objectiveMatch = block.match(/\*\*Objective\*\*:\s*(.+)/)
+    const objective = objectiveMatch ? objectiveMatch[1].trim() : ''
+
+    const tasks: string[] = []
+    const tasksSection = block.match(/####\s*(?:[^\w\s]+\s*)?Tasks([\s\S]*?)(?=####|$)/i)
+    if (tasksSection) {
+      const taskLines = tasksSection[1].match(/- \[ \] (.+)/g) || []
+      taskLines.forEach((task) => tasks.push(task.replace('- [ ] ', '').trim()))
+    }
+
+    let prompt = ''
+    const promptCodeBlock = block.match(/####\s*(?:[^\w\s]+\s*)?Agent Prompt[\s\S]*?```(?:bash|text)?\n?([\s\S]*?)```/i)
+    if (promptCodeBlock) {
+      prompt = promptCodeBlock[1].trim()
+    }
+
+    const files: { file: string, purpose: string }[] = []
+    const filesTable = block.match(
+      /####\s*(?:[^\w\s]+\s*)?Expected Files(?:\s*&\s*Artifacts)?[\s\S]*?(\|.+\|[\s\S]*?)(?=####|---\n|$)/i
+    )
+    if (filesTable) {
+      const rows = filesTable[1].split('\n').filter((row) => row.includes('|') && !row.includes('---'))
+      rows.slice(1).forEach((row) => {
+        const cols = row.split('|').map((col) => col.trim()).filter(Boolean)
+        if (cols.length >= 2) {
+          files.push({ file: cols[0].replace(/`/g, ''), purpose: cols[1] })
+        }
+      })
+    }
+
+    const acceptanceCriteria: string[] = []
+    const acceptanceSection = block.match(/####\s*(?:[^\w\s]+\s*)?Acceptance Criteria([\s\S]*?)(?=####|$)/i)
+    if (acceptanceSection) {
+      const criteriaLines = acceptanceSection[1].match(/- \[ \] (.+)/g) || []
+      criteriaLines.forEach((item) => acceptanceCriteria.push(item.replace('- [ ] ', '').trim()))
+    }
+
+    let verification = ''
+    const verificationSection = block.match(
+      /####\s*(?:[^\w\s]+\s*)?Verification(?: Commands)?[\s\S]*?```bash\n([\s\S]*?)```/i
+    )
+    if (verificationSection) {
+      verification = verificationSection[1].trim()
     }
 
     if (prompt || tasks.length > 0) {
@@ -270,31 +335,39 @@ function PromptsContent() {
 
   const handleSelectPlanner = useCallback((planner: PlannerVersion) => {
     setSelectedPlanner(planner)
-    const extracted = extractPrompts(planner.content)
+    const extracted = extractPromptsRobust(planner.content)
     setPrompts(extracted)
   }, [])
 
   const handleSelectProject = useCallback(async (project: Project) => {
     setSelectedProject(project)
     setIsLoading(true)
+    const cachedHistory = readPlannerHistoryCache(project.id)
     try {
       const res = await fetch(`/api/planner/history?projectId=${project.id}&t=${Date.now()}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
-        setPlannerHistory(data)
-        if (data && data.length > 0) {
+        const mergedHistory = mergePlannerHistory(data, cachedHistory)
+        setPlannerHistory(mergedHistory)
+        if (mergedHistory.length > 0) {
           try {
-            handleSelectPlanner(data[0]) // Select the latest plan automatically
+            handleSelectPlanner(mergedHistory[0]) // Select the latest plan automatically
           } catch (error) {
             console.error('Error in handleSelectPlanner:', error)
           }
         }
       } else {
-        setPlannerHistory([])
+        setPlannerHistory(cachedHistory)
+        if (cachedHistory.length > 0) {
+          handleSelectPlanner(cachedHistory[0])
+        }
       }
     } catch (e) {
       console.error('Fetch error:', e)
-      setPlannerHistory([])
+      setPlannerHistory(cachedHistory)
+      if (cachedHistory.length > 0) {
+        handleSelectPlanner(cachedHistory[0])
+      }
     }
     setIsLoading(false)
   }, [handleSelectPlanner])

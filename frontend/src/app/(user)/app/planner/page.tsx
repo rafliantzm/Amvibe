@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react'
 import { PRDViewer } from '@/components/ui/PRDViewer'
+import { mergePlannerHistory, readPlannerHistoryCache, removePlannerHistoryCache, writePlannerHistoryCache } from '@/lib/planner-history-cache'
 import { createClient } from '@/utils/supabase/client'
 import { GlitchText } from '@/components/ui/GlitchText'
 import { NeuralMesh } from '@/components/ui/NeuralMesh'
@@ -153,16 +154,22 @@ export default function PlannerPage() {
 
   const fetchPlannerHistory = useCallback(async (projectId: string) => {
     setIsLoadingHistory(true)
+    const cachedHistory = readPlannerHistoryCache(projectId)
+
+    if (cachedHistory.length > 0) {
+      setPlannerHistory(cachedHistory)
+    }
+
     try {
       const res = await fetch(`/api/planner/history?projectId=${projectId}`)
       if (res.ok) {
         const data = await res.json()
-        setPlannerHistory(data)
+        setPlannerHistory(mergePlannerHistory(data, cachedHistory))
       } else {
-        setPlannerHistory([])
+        setPlannerHistory(cachedHistory)
       }
     } catch {
-      setPlannerHistory([])
+      setPlannerHistory(cachedHistory)
     }
     setIsLoadingHistory(false)
   }, [])
@@ -233,6 +240,14 @@ export default function PlannerPage() {
 
       try {
         if (finalCompletion.trim()) {
+          writePlannerHistoryCache({
+            id: `local-${Date.now()}`,
+            project_id: selectedProject.id,
+            agent_name: selectedAgent,
+            content: finalCompletion,
+            created_at: new Date().toISOString(),
+          })
+
           await savePlannerHistory(selectedProject.id, selectedAgent, finalCompletion)
         }
 
@@ -306,12 +321,22 @@ export default function PlannerPage() {
 
     setIsDeletingHistory(true)
     try {
+      if (historyToDelete.id.startsWith('local-')) {
+        removePlannerHistoryCache(historyToDelete.project_id, historyToDelete.id)
+        showToast('success', 'Planner history deleted.')
+        if (selectedProject) {
+          await fetchPlannerHistory(selectedProject.id)
+        }
+        return
+      }
+
       const res = await fetch(`/api/planner/history?id=${historyToDelete.id}`, { method: 'DELETE' })
       if (!res.ok) {
         showToast('error', 'Failed to delete planner history.')
         return
       }
 
+      removePlannerHistoryCache(historyToDelete.project_id, historyToDelete.id)
       showToast('success', 'Planner history deleted.')
       if (selectedProject) {
         await fetchPlannerHistory(selectedProject.id)
