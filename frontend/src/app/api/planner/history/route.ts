@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
+
 import { createClient } from '@/utils/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -13,27 +12,19 @@ interface PlannerHistoryItem {
   created_at: string
 }
 
-function getHistoryFilePath() {
-  return path.join(process.cwd(), 'data', 'planner_history.json')
-}
-
-function readPlannerHistory(): PlannerHistoryItem[] {
-  const historyFile = getHistoryFilePath()
-
-  if (!fs.existsSync(historyFile)) {
-    return []
-  }
-
-  const rawHistory = fs.readFileSync(historyFile, 'utf-8')
-  return JSON.parse(rawHistory) as PlannerHistoryItem[]
-}
-
 async function requireOwnedProject(projectId: string) {
   const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: new NextResponse('Unauthorized', { status: 401 }) }
+    return {
+      error: new NextResponse('Unauthorized', { status: 401 }),
+      supabase,
+      user: null,
+    }
   }
 
   const { data: project, error: projectError } = await supabase
@@ -44,10 +35,18 @@ async function requireOwnedProject(projectId: string) {
     .single()
 
   if (projectError || !project) {
-    return { error: new NextResponse('Forbidden', { status: 403 }) }
+    return {
+      error: new NextResponse('Forbidden', { status: 403 }),
+      supabase,
+      user,
+    }
   }
 
-  return { error: null }
+  return {
+    error: null,
+    supabase,
+    user,
+  }
 }
 
 export async function GET(req: Request) {
@@ -64,10 +63,18 @@ export async function GET(req: Request) {
       return access.error
     }
 
-    const history = readPlannerHistory()
-    const projectHistory = history.filter((item) => item.project_id === projectId)
+    const { data, error } = await access.supabase
+      .from('planner_versions')
+      .select('id, project_id, agent_name, content, created_at')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false })
 
-    return NextResponse.json(projectHistory)
+    if (error) {
+      console.error('Error fetching planner history from Supabase:', error)
+      return new NextResponse('Internal Server Error', { status: 500 })
+    }
+
+    return NextResponse.json((data ?? []) as PlannerHistoryItem[])
   } catch (error) {
     console.error('Error fetching planner history:', error)
     return new NextResponse('Internal Server Error', { status: 500 })
@@ -83,21 +90,40 @@ export async function DELETE(req: Request) {
       return new NextResponse('Plan ID required', { status: 400 })
     }
 
-    const history = readPlannerHistory()
-    const targetPlan = history.find((item) => item.id === planId)
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    if (!targetPlan) {
+    if (authError || !user) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    const { data: planner, error: plannerError } = await supabase
+      .from('planner_versions')
+      .select('id, project_id')
+      .eq('id', planId)
+      .single()
+
+    if (plannerError || !planner) {
       return new NextResponse('Plan not found', { status: 404 })
     }
 
-    const access = await requireOwnedProject(targetPlan.project_id)
+    const access = await requireOwnedProject(planner.project_id)
     if (access.error) {
       return access.error
     }
 
-    const historyFile = getHistoryFilePath()
-    const newHistory = history.filter((item) => item.id !== planId)
-    fs.writeFileSync(historyFile, JSON.stringify(newHistory, null, 2))
+    const { error: deleteError } = await access.supabase
+      .from('planner_versions')
+      .delete()
+      .eq('id', planId)
+
+    if (deleteError) {
+      console.error('Error deleting planner history from Supabase:', deleteError)
+      return new NextResponse('Internal Server Error', { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

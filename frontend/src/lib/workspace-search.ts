@@ -1,8 +1,5 @@
 import 'server-only'
 
-import fs from 'fs'
-import path from 'path'
-
 import { createClient } from '@/utils/supabase/server'
 import { extractPrompts } from './prompts'
 
@@ -61,7 +58,6 @@ const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   year: 'numeric',
 })
 
-const historyFilePath = path.join(process.cwd(), 'data', 'planner_history.json')
 const MAX_PROJECTS_FOR_QUERY = 50
 const MAX_PROJECTS_FOR_OVERVIEW = 16
 const OVERVIEW_CONTENT_PROJECT_WINDOW = 12
@@ -70,28 +66,7 @@ const MAX_PRD_ROWS_FOR_OVERVIEW = 48
 const MAX_PROMPT_SOURCES_FOR_OVERVIEW = 8
 const MAX_PROMPT_CACHE_ENTRIES = 100
 
-let plannerHistoryCache: { data: PlannerHistoryRecord[]; mtimeMs: number } | null = null
 const promptExtractionCache = new Map<string, ReturnType<typeof extractPrompts>>()
-
-function readPlannerHistory(): PlannerHistoryRecord[] {
-  if (!fs.existsSync(historyFilePath)) {
-    plannerHistoryCache = null
-    return []
-  }
-
-  const stats = fs.statSync(historyFilePath)
-  if (plannerHistoryCache && plannerHistoryCache.mtimeMs === stats.mtimeMs) {
-    return plannerHistoryCache.data
-  }
-
-  const data = JSON.parse(fs.readFileSync(historyFilePath, 'utf-8')) as PlannerHistoryRecord[]
-  plannerHistoryCache = {
-    data,
-    mtimeMs: stats.mtimeMs,
-  }
-
-  return data
-}
 
 function getExtractedPrompts(planner: PlannerHistoryRecord) {
   const cacheKey = `${planner.id}:${planner.created_at}:${planner.content.length}`
@@ -217,6 +192,23 @@ async function fetchPrdVersions(
   return (data ?? []) as PrdVersionRecord[]
 }
 
+async function fetchPlannerHistory(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  projectIds: string[]
+) {
+  if (projectIds.length === 0) {
+    return [] as PlannerHistoryRecord[]
+  }
+
+  const { data } = await supabase
+    .from('planner_versions')
+    .select('id, project_id, agent_name, content, created_at')
+    .in('project_id', projectIds)
+    .order('created_at', { ascending: false })
+
+  return (data ?? []) as PlannerHistoryRecord[]
+}
+
 export async function getWorkspaceSearchPayload(query: string): Promise<WorkspaceSearchPayload> {
   const supabase = await createClient()
   const {
@@ -257,7 +249,7 @@ export async function getWorkspaceSearchPayload(query: string): Promise<Workspac
       contentProjectIds,
       hasQuery ? MAX_PRD_ROWS_FOR_QUERY : MAX_PRD_ROWS_FOR_OVERVIEW
     ),
-    Promise.resolve(readPlannerHistory()),
+    fetchPlannerHistory(supabase, contentProjectIds),
   ])
 
   const latestPrdByProject = new Map<string, PrdVersionRecord>()
