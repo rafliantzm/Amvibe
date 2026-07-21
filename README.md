@@ -8,6 +8,8 @@ Amvibe adalah platform web berbasis AI untuk membantu proses perancangan produk 
 
 Amvibe ditujukan untuk founder, mahasiswa, product team, dan developer yang ingin mempercepat fase analisis, dokumentasi, dan handoff teknis tanpa mengubah visi produk.
 
+![Poster Showcase Amvibe](docs/posters/amvibe-showcase-readme.png)
+
 ## Developer Team
 
 - Tatryan Kautsar Alfirdaus (24.01.53.0019)
